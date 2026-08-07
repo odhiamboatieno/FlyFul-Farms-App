@@ -21,20 +21,24 @@ val releaseKeystoreFile: File? = System.getenv("KEYSTORE_PATH")?.let { File(it) 
             }
         }
 
-val releaseStorePassword: String? = System.getenv("KEYSTORE_STORE_PASSWORD")
+val resolvedReleaseStorePassword: String? = System.getenv("KEYSTORE_STORE_PASSWORD")
         ?: file("../key.properties").takeIf { it.exists() }?.let {
             Properties().apply { load(FileInputStream(it)) }.getProperty("storePassword")
         }
 
-val releaseKeyPassword: String? = System.getenv("KEYSTORE_KEY_PASSWORD")
+val resolvedReleaseKeyPassword: String? = System.getenv("KEYSTORE_KEY_PASSWORD")
         ?: file("../key.properties").takeIf { it.exists() }?.let {
             Properties().apply { load(FileInputStream(it)) }.getProperty("keyPassword")
         }
 
-val releaseKeyAlias: String? = System.getenv("KEYSTORE_KEY_ALIAS")
+val resolvedReleaseKeyAlias: String? = System.getenv("KEYSTORE_KEY_ALIAS")
         ?: file("../key.properties").takeIf { it.exists() }?.let {
             Properties().apply { load(FileInputStream(it)) }.getProperty("keyAlias")
         }
+
+val hasReleaseConfig = releaseKeystoreFile != null && releaseKeystoreFile!!.exists() &&
+        resolvedReleaseStorePassword != null && resolvedReleaseKeyPassword != null &&
+        resolvedReleaseKeyAlias != null
 
 android {
     namespace = "com.flyfulfarms.app"
@@ -47,13 +51,12 @@ android {
     }
 
     signingConfigs {
-        if (releaseKeystoreFile != null && releaseStorePassword != null &&
-                releaseKeyPassword != null && releaseKeyAlias != null) {
+        if (hasReleaseConfig) {
             create("release") {
                 storeFile = releaseKeystoreFile
-                storePassword = releaseStorePassword
-                keyAlias = releaseKeyAlias
-                keyPassword = releaseKeyPassword
+                storePassword = resolvedReleaseStorePassword
+                keyAlias = resolvedReleaseKeyAlias
+                keyPassword = resolvedReleaseKeyPassword
             }
         }
     }
