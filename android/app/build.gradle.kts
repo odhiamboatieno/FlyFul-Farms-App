@@ -1,11 +1,43 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Resolve signing credentials from either environment variables (CI / GitHub Actions
+// secrets) or a local, gitignored android/key.properties file.
+val releaseKeystoreFile: File? = System.getenv("KEYSTORE_PATH")?.let { File(it) }
+        ?: file("../key.properties").let { propsFile ->
+            if (propsFile.exists()) {
+                val props = Properties().apply {
+                    load(FileInputStream(propsFile))
+                }
+                File(props.getProperty("storeFile"))
+            } else {
+                null
+            }
+        }
+
+val releaseStorePassword: String? = System.getenv("KEYSTORE_STORE_PASSWORD")
+        ?: file("../key.properties").takeIf { it.exists() }?.let {
+            Properties().apply { load(FileInputStream(it)) }.getProperty("storePassword")
+        }
+
+val releaseKeyPassword: String? = System.getenv("KEYSTORE_KEY_PASSWORD")
+        ?: file("../key.properties").takeIf { it.exists() }?.let {
+            Properties().apply { load(FileInputStream(it)) }.getProperty("keyPassword")
+        }
+
+val releaseKeyAlias: String? = System.getenv("KEYSTORE_KEY_ALIAS")
+        ?: file("../key.properties").takeIf { it.exists() }?.let {
+            Properties().apply { load(FileInputStream(it)) }.getProperty("keyAlias")
+        }
+
 android {
-    namespace = "com.example.mobile"
+    namespace = "com.flyfulfarms.app"
     compileSdk = 35
     ndkVersion = flutter.ndkVersion
 
@@ -14,9 +46,20 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    signingConfigs {
+        if (releaseKeystoreFile != null && releaseStorePassword != null &&
+                releaseKeyPassword != null && releaseKeyAlias != null) {
+            create("release") {
+                storeFile = releaseKeystoreFile
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.mobile"
+        applicationId = "com.flyfulfarms.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -27,9 +70,13 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Fall back to debug signing only when release credentials are unavailable.
+            val releaseConfig = signingConfigs.findByName("release")
+            if (releaseConfig != null) {
+                signingConfig = releaseConfig
+            } else {
+                signingConfig = signingConfigs.getByName("debug")
+            }
         }
     }
 }
