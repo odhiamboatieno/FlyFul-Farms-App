@@ -15,8 +15,16 @@ subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
+import com.android.build.api.dsl.CommonExtension
+
 subprojects {
     project.evaluationDependsOn(":app")
+
+    afterEvaluate {
+        if (project.hasProperty("android")) {
+            project.extensions.getByType(CommonExtension::class).compileSdk = 35
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {
