@@ -29,7 +29,31 @@ class SyncDao extends DatabaseAccessor<AppDatabase> {
         ));
   }
 
+  Future<void> markAsFailed(int id, {String? error}) async {
+    final current = await retryCountFor(id);
+    await (update(db.syncOutboxes)..where((t) => t.id.equals(id))).write(
+      SyncOutboxesCompanion(
+        status: const Value('failed'),
+        retryCount: Value(current + 1),
+        errorMessage: Value(error),
+        updatedAt: Value(DateTime.now()),
+      ),
+    );
+  }
+
   Future<int> deleteSyncOperation(int id) async {
     return await (delete(db.syncOutboxes)..where((t) => t.id.equals(id))).go();
+  }
+
+  Future<int> retryCountFor(int id) async {
+    final row = await (select(db.syncOutboxes)..where((t) => t.id.equals(id)))
+        .getSingleOrNull();
+    return row?.retryCount ?? 0;
+  }
+
+  Future<SyncOutboxe?> failedOperation(int id) async {
+    final row = await (select(db.syncOutboxes)..where((t) => t.id.equals(id)))
+        .getSingleOrNull();
+    return row;
   }
 }

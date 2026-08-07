@@ -19,6 +19,7 @@ part 'app_database.g.dart';
 @DriftDatabase(tables: [Batches, BreedingCages, Feedings, Harvests, EggCollections, CageMaintenances, SyncOutboxes])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
+  AppDatabase.inMemory() : super(NativeDatabase.memory());
 
   @override
   int get schemaVersion => 1;
