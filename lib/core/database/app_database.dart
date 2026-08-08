@@ -22,7 +22,18 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.inMemory() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onCreate: (m) => m.createAll(),
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.addColumn(batches, batches.remoteId);
+            await m.addColumn(syncOutboxes, syncOutboxes.operationId);
+          }
+        },
+      );
 
   late final batchDao = BatchDao(this);
   late final cageDao = CageDao(this);

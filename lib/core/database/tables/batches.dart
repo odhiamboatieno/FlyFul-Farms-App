@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 class Batches extends Table {
   IntColumn get id => integer().autoIncrement()();
+  TextColumn get remoteId => text().named('remote_id').nullable()();
   TextColumn get batchNumber => text().withDefault(const Constant(''))();
   TextColumn get farmerId => text().withDefault(const Constant(''))();
   TextColumn get farmerName => text().withDefault(const Constant(''))();

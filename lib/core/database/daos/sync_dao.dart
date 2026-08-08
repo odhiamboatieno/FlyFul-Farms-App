@@ -21,6 +21,13 @@ class SyncDao extends DatabaseAccessor<AppDatabase> {
     return await into(db.syncOutboxes).insert(op);
   }
 
+  Future<SyncOutboxe?> findPendingByOperationId(String operationId) async {
+    final rows = await (select(db.syncOutboxes)
+          ..where((t) => t.operationId.equals(operationId)))
+        .get();
+    return rows.isEmpty ? null : rows.first;
+  }
+
   Future<void> markAsComplete(int id) async {
     await (update(db.syncOutboxes)..where((t) => t.id.equals(id))).write(
         SyncOutboxesCompanion(

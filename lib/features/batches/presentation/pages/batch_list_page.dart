@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/shared/widgets/bottom_nav.dart';
 import 'package:flyful_farms/features/batches/presentation/providers/batch_provider.dart';
+import 'package:flyful_farms/config/di.dart';
 import 'package:provider/provider.dart';
 
 class BatchListPage extends StatefulWidget {
@@ -14,6 +15,34 @@ class BatchListPage extends StatefulWidget {
 class _BatchListPageState extends State<BatchListPage> {
   final _searchController = TextEditingController();
   int _currentIndex = 1;
+  bool _syncing = false;
+
+  Future<void> _syncNow() async {
+    if (_syncing) return;
+    setState(() => _syncing = true);
+    try {
+      final result = await syncService.syncNow();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result.processed > 0
+                ? 'Synced ${result.processed} offline change(s)'
+                : result.failed > 0
+                    ? 'Sync failed for ${result.failed} item(s)'
+                    : 'Nothing to sync',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Sync failed: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _syncing = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -112,10 +141,23 @@ class _BatchListPageState extends State<BatchListPage> {
     return Row(children: [
       GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
       const SizedBox(width: 8),
-      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        OutfitText(text: title, fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink),
-        Text(subtitle, style: TextStyle(fontSize: 15, height: 1.45, color: AppColors.textSecondary)),
-      ]),
+      Expanded(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          OutfitText(text: title, fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink),
+          Text(subtitle, style: TextStyle(fontSize: 15, height: 1.45, color: AppColors.textSecondary)),
+        ]),
+      ),
+      IconButton(
+        onPressed: _syncing ? null : _syncNow,
+        tooltip: 'Sync offline changes',
+        icon: _syncing
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.green),
+              )
+            : const Icon(Icons.sync, color: AppColors.green, size: 22),
+      ),
     ]);
   }
 

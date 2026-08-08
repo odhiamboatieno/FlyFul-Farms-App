@@ -41,6 +41,9 @@ void main() {
     expect(pending, hasLength(1));
     expect(pending.first.entityType, 'batch');
     expect(pending.first.operation, 'create');
+    expect(pending.first.operationId, isNotEmpty);
+    expect(pending.first.entityId, isNotEmpty);
+    expect(pending.first.payload, contains('batchNumber'));
   });
 
   test('batchById finds the created batch', () async {

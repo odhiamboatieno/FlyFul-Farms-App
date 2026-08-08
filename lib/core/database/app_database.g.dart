@@ -21,6 +21,17 @@ class $BatchesTable extends Batches with TableInfo<$BatchesTable, Batche> {
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
+  static const VerificationMeta _remoteIdMeta = const VerificationMeta(
+    'remoteId',
+  );
+  @override
+  late final GeneratedColumn<String> remoteId = GeneratedColumn<String>(
+    'remote_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _batchNumberMeta = const VerificationMeta(
     'batchNumber',
   );
@@ -218,6 +229,7 @@ class $BatchesTable extends Batches with TableInfo<$BatchesTable, Batche> {
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    remoteId,
     batchNumber,
     farmerId,
     farmerName,
@@ -250,6 +262,12 @@ class $BatchesTable extends Batches with TableInfo<$BatchesTable, Batche> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('remote_id')) {
+      context.handle(
+        _remoteIdMeta,
+        remoteId.isAcceptableOrUnknown(data['remote_id']!, _remoteIdMeta),
+      );
     }
     if (data.containsKey('batch_number')) {
       context.handle(
@@ -385,6 +403,10 @@ class $BatchesTable extends Batches with TableInfo<$BatchesTable, Batche> {
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      remoteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_id'],
+      ),
       batchNumber: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}batch_number'],
@@ -464,6 +486,7 @@ class $BatchesTable extends Batches with TableInfo<$BatchesTable, Batche> {
 
 class Batche extends DataClass implements Insertable<Batche> {
   final int id;
+  final String? remoteId;
   final String batchNumber;
   final String farmerId;
   final String farmerName;
@@ -483,6 +506,7 @@ class Batche extends DataClass implements Insertable<Batche> {
   final DateTime updatedAt;
   const Batche({
     required this.id,
+    this.remoteId,
     required this.batchNumber,
     required this.farmerId,
     required this.farmerName,
@@ -505,6 +529,9 @@ class Batche extends DataClass implements Insertable<Batche> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    if (!nullToAbsent || remoteId != null) {
+      map['remote_id'] = Variable<String>(remoteId);
+    }
     map['batch_number'] = Variable<String>(batchNumber);
     map['farmer_id'] = Variable<String>(farmerId);
     map['farmer_name'] = Variable<String>(farmerName);
@@ -538,6 +565,9 @@ class Batche extends DataClass implements Insertable<Batche> {
   BatchesCompanion toCompanion(bool nullToAbsent) {
     return BatchesCompanion(
       id: Value(id),
+      remoteId: remoteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteId),
       batchNumber: Value(batchNumber),
       farmerId: Value(farmerId),
       farmerName: Value(farmerName),
@@ -575,6 +605,7 @@ class Batche extends DataClass implements Insertable<Batche> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Batche(
       id: serializer.fromJson<int>(json['id']),
+      remoteId: serializer.fromJson<String?>(json['remoteId']),
       batchNumber: serializer.fromJson<String>(json['batchNumber']),
       farmerId: serializer.fromJson<String>(json['farmerId']),
       farmerName: serializer.fromJson<String>(json['farmerName']),
@@ -603,6 +634,7 @@ class Batche extends DataClass implements Insertable<Batche> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'remoteId': serializer.toJson<String?>(remoteId),
       'batchNumber': serializer.toJson<String>(batchNumber),
       'farmerId': serializer.toJson<String>(farmerId),
       'farmerName': serializer.toJson<String>(farmerName),
@@ -625,6 +657,7 @@ class Batche extends DataClass implements Insertable<Batche> {
 
   Batche copyWith({
     int? id,
+    Value<String?> remoteId = const Value.absent(),
     String? batchNumber,
     String? farmerId,
     String? farmerName,
@@ -644,6 +677,7 @@ class Batche extends DataClass implements Insertable<Batche> {
     DateTime? updatedAt,
   }) => Batche(
     id: id ?? this.id,
+    remoteId: remoteId.present ? remoteId.value : this.remoteId,
     batchNumber: batchNumber ?? this.batchNumber,
     farmerId: farmerId ?? this.farmerId,
     farmerName: farmerName ?? this.farmerName,
@@ -667,6 +701,7 @@ class Batche extends DataClass implements Insertable<Batche> {
   Batche copyWithCompanion(BatchesCompanion data) {
     return Batche(
       id: data.id.present ? data.id.value : this.id,
+      remoteId: data.remoteId.present ? data.remoteId.value : this.remoteId,
       batchNumber: data.batchNumber.present
           ? data.batchNumber.value
           : this.batchNumber,
@@ -703,6 +738,7 @@ class Batche extends DataClass implements Insertable<Batche> {
   String toString() {
     return (StringBuffer('Batche(')
           ..write('id: $id, ')
+          ..write('remoteId: $remoteId, ')
           ..write('batchNumber: $batchNumber, ')
           ..write('farmerId: $farmerId, ')
           ..write('farmerName: $farmerName, ')
@@ -727,6 +763,7 @@ class Batche extends DataClass implements Insertable<Batche> {
   @override
   int get hashCode => Object.hash(
     id,
+    remoteId,
     batchNumber,
     farmerId,
     farmerName,
@@ -750,6 +787,7 @@ class Batche extends DataClass implements Insertable<Batche> {
       identical(this, other) ||
       (other is Batche &&
           other.id == this.id &&
+          other.remoteId == this.remoteId &&
           other.batchNumber == this.batchNumber &&
           other.farmerId == this.farmerId &&
           other.farmerName == this.farmerName &&
@@ -771,6 +809,7 @@ class Batche extends DataClass implements Insertable<Batche> {
 
 class BatchesCompanion extends UpdateCompanion<Batche> {
   final Value<int> id;
+  final Value<String?> remoteId;
   final Value<String> batchNumber;
   final Value<String> farmerId;
   final Value<String> farmerName;
@@ -790,6 +829,7 @@ class BatchesCompanion extends UpdateCompanion<Batche> {
   final Value<DateTime> updatedAt;
   const BatchesCompanion({
     this.id = const Value.absent(),
+    this.remoteId = const Value.absent(),
     this.batchNumber = const Value.absent(),
     this.farmerId = const Value.absent(),
     this.farmerName = const Value.absent(),
@@ -810,6 +850,7 @@ class BatchesCompanion extends UpdateCompanion<Batche> {
   });
   BatchesCompanion.insert({
     this.id = const Value.absent(),
+    this.remoteId = const Value.absent(),
     this.batchNumber = const Value.absent(),
     this.farmerId = const Value.absent(),
     this.farmerName = const Value.absent(),
@@ -831,6 +872,7 @@ class BatchesCompanion extends UpdateCompanion<Batche> {
        expectedHarvestDate = Value(expectedHarvestDate);
   static Insertable<Batche> custom({
     Expression<int>? id,
+    Expression<String>? remoteId,
     Expression<String>? batchNumber,
     Expression<String>? farmerId,
     Expression<String>? farmerName,
@@ -851,6 +893,7 @@ class BatchesCompanion extends UpdateCompanion<Batche> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (remoteId != null) 'remote_id': remoteId,
       if (batchNumber != null) 'batch_number': batchNumber,
       if (farmerId != null) 'farmer_id': farmerId,
       if (farmerName != null) 'farmer_name': farmerName,
@@ -874,6 +917,7 @@ class BatchesCompanion extends UpdateCompanion<Batche> {
 
   BatchesCompanion copyWith({
     Value<int>? id,
+    Value<String?>? remoteId,
     Value<String>? batchNumber,
     Value<String>? farmerId,
     Value<String>? farmerName,
@@ -894,6 +938,7 @@ class BatchesCompanion extends UpdateCompanion<Batche> {
   }) {
     return BatchesCompanion(
       id: id ?? this.id,
+      remoteId: remoteId ?? this.remoteId,
       batchNumber: batchNumber ?? this.batchNumber,
       farmerId: farmerId ?? this.farmerId,
       farmerName: farmerName ?? this.farmerName,
@@ -919,6 +964,9 @@ class BatchesCompanion extends UpdateCompanion<Batche> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (remoteId.present) {
+      map['remote_id'] = Variable<String>(remoteId.value);
     }
     if (batchNumber.present) {
       map['batch_number'] = Variable<String>(batchNumber.value);
@@ -980,6 +1028,7 @@ class BatchesCompanion extends UpdateCompanion<Batche> {
   String toString() {
     return (StringBuffer('BatchesCompanion(')
           ..write('id: $id, ')
+          ..write('remoteId: $remoteId, ')
           ..write('batchNumber: $batchNumber, ')
           ..write('farmerId: $farmerId, ')
           ..write('farmerName: $farmerName, ')
@@ -4102,6 +4151,17 @@ class $SyncOutboxesTable extends SyncOutboxes
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
+  static const VerificationMeta _operationIdMeta = const VerificationMeta(
+    'operationId',
+  );
+  @override
+  late final GeneratedColumn<String> operationId = GeneratedColumn<String>(
+    'operation_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _entityTypeMeta = const VerificationMeta(
     'entityType',
   );
@@ -4208,6 +4268,7 @@ class $SyncOutboxesTable extends SyncOutboxes
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    operationId,
     entityType,
     entityId,
     status,
@@ -4232,6 +4293,17 @@ class $SyncOutboxesTable extends SyncOutboxes
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('operation_id')) {
+      context.handle(
+        _operationIdMeta,
+        operationId.isAcceptableOrUnknown(
+          data['operation_id']!,
+          _operationIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_operationIdMeta);
     }
     if (data.containsKey('entity_type')) {
       context.handle(
@@ -4305,6 +4377,10 @@ class $SyncOutboxesTable extends SyncOutboxes
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      operationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}operation_id'],
+      )!,
       entityType: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}entity_type'],
@@ -4352,6 +4428,7 @@ class $SyncOutboxesTable extends SyncOutboxes
 
 class SyncOutboxe extends DataClass implements Insertable<SyncOutboxe> {
   final int id;
+  final String operationId;
   final String entityType;
   final String? entityId;
   final String status;
@@ -4363,6 +4440,7 @@ class SyncOutboxe extends DataClass implements Insertable<SyncOutboxe> {
   final DateTime updatedAt;
   const SyncOutboxe({
     required this.id,
+    required this.operationId,
     required this.entityType,
     this.entityId,
     required this.status,
@@ -4377,6 +4455,7 @@ class SyncOutboxe extends DataClass implements Insertable<SyncOutboxe> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    map['operation_id'] = Variable<String>(operationId);
     map['entity_type'] = Variable<String>(entityType);
     if (!nullToAbsent || entityId != null) {
       map['entity_id'] = Variable<String>(entityId);
@@ -4396,6 +4475,7 @@ class SyncOutboxe extends DataClass implements Insertable<SyncOutboxe> {
   SyncOutboxesCompanion toCompanion(bool nullToAbsent) {
     return SyncOutboxesCompanion(
       id: Value(id),
+      operationId: Value(operationId),
       entityType: Value(entityType),
       entityId: entityId == null && nullToAbsent
           ? const Value.absent()
@@ -4419,6 +4499,7 @@ class SyncOutboxe extends DataClass implements Insertable<SyncOutboxe> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return SyncOutboxe(
       id: serializer.fromJson<int>(json['id']),
+      operationId: serializer.fromJson<String>(json['operationId']),
       entityType: serializer.fromJson<String>(json['entityType']),
       entityId: serializer.fromJson<String?>(json['entityId']),
       status: serializer.fromJson<String>(json['status']),
@@ -4435,6 +4516,7 @@ class SyncOutboxe extends DataClass implements Insertable<SyncOutboxe> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'operationId': serializer.toJson<String>(operationId),
       'entityType': serializer.toJson<String>(entityType),
       'entityId': serializer.toJson<String?>(entityId),
       'status': serializer.toJson<String>(status),
@@ -4449,6 +4531,7 @@ class SyncOutboxe extends DataClass implements Insertable<SyncOutboxe> {
 
   SyncOutboxe copyWith({
     int? id,
+    String? operationId,
     String? entityType,
     Value<String?> entityId = const Value.absent(),
     String? status,
@@ -4460,6 +4543,7 @@ class SyncOutboxe extends DataClass implements Insertable<SyncOutboxe> {
     DateTime? updatedAt,
   }) => SyncOutboxe(
     id: id ?? this.id,
+    operationId: operationId ?? this.operationId,
     entityType: entityType ?? this.entityType,
     entityId: entityId.present ? entityId.value : this.entityId,
     status: status ?? this.status,
@@ -4473,6 +4557,9 @@ class SyncOutboxe extends DataClass implements Insertable<SyncOutboxe> {
   SyncOutboxe copyWithCompanion(SyncOutboxesCompanion data) {
     return SyncOutboxe(
       id: data.id.present ? data.id.value : this.id,
+      operationId: data.operationId.present
+          ? data.operationId.value
+          : this.operationId,
       entityType: data.entityType.present
           ? data.entityType.value
           : this.entityType,
@@ -4495,6 +4582,7 @@ class SyncOutboxe extends DataClass implements Insertable<SyncOutboxe> {
   String toString() {
     return (StringBuffer('SyncOutboxe(')
           ..write('id: $id, ')
+          ..write('operationId: $operationId, ')
           ..write('entityType: $entityType, ')
           ..write('entityId: $entityId, ')
           ..write('status: $status, ')
@@ -4511,6 +4599,7 @@ class SyncOutboxe extends DataClass implements Insertable<SyncOutboxe> {
   @override
   int get hashCode => Object.hash(
     id,
+    operationId,
     entityType,
     entityId,
     status,
@@ -4526,6 +4615,7 @@ class SyncOutboxe extends DataClass implements Insertable<SyncOutboxe> {
       identical(this, other) ||
       (other is SyncOutboxe &&
           other.id == this.id &&
+          other.operationId == this.operationId &&
           other.entityType == this.entityType &&
           other.entityId == this.entityId &&
           other.status == this.status &&
@@ -4539,6 +4629,7 @@ class SyncOutboxe extends DataClass implements Insertable<SyncOutboxe> {
 
 class SyncOutboxesCompanion extends UpdateCompanion<SyncOutboxe> {
   final Value<int> id;
+  final Value<String> operationId;
   final Value<String> entityType;
   final Value<String?> entityId;
   final Value<String> status;
@@ -4550,6 +4641,7 @@ class SyncOutboxesCompanion extends UpdateCompanion<SyncOutboxe> {
   final Value<DateTime> updatedAt;
   const SyncOutboxesCompanion({
     this.id = const Value.absent(),
+    this.operationId = const Value.absent(),
     this.entityType = const Value.absent(),
     this.entityId = const Value.absent(),
     this.status = const Value.absent(),
@@ -4562,6 +4654,7 @@ class SyncOutboxesCompanion extends UpdateCompanion<SyncOutboxe> {
   });
   SyncOutboxesCompanion.insert({
     this.id = const Value.absent(),
+    required String operationId,
     required String entityType,
     this.entityId = const Value.absent(),
     this.status = const Value.absent(),
@@ -4571,9 +4664,11 @@ class SyncOutboxesCompanion extends UpdateCompanion<SyncOutboxe> {
     this.errorMessage = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
-  }) : entityType = Value(entityType);
+  }) : operationId = Value(operationId),
+       entityType = Value(entityType);
   static Insertable<SyncOutboxe> custom({
     Expression<int>? id,
+    Expression<String>? operationId,
     Expression<String>? entityType,
     Expression<String>? entityId,
     Expression<String>? status,
@@ -4586,6 +4681,7 @@ class SyncOutboxesCompanion extends UpdateCompanion<SyncOutboxe> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (operationId != null) 'operation_id': operationId,
       if (entityType != null) 'entity_type': entityType,
       if (entityId != null) 'entity_id': entityId,
       if (status != null) 'status': status,
@@ -4600,6 +4696,7 @@ class SyncOutboxesCompanion extends UpdateCompanion<SyncOutboxe> {
 
   SyncOutboxesCompanion copyWith({
     Value<int>? id,
+    Value<String>? operationId,
     Value<String>? entityType,
     Value<String?>? entityId,
     Value<String>? status,
@@ -4612,6 +4709,7 @@ class SyncOutboxesCompanion extends UpdateCompanion<SyncOutboxe> {
   }) {
     return SyncOutboxesCompanion(
       id: id ?? this.id,
+      operationId: operationId ?? this.operationId,
       entityType: entityType ?? this.entityType,
       entityId: entityId ?? this.entityId,
       status: status ?? this.status,
@@ -4629,6 +4727,9 @@ class SyncOutboxesCompanion extends UpdateCompanion<SyncOutboxe> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (operationId.present) {
+      map['operation_id'] = Variable<String>(operationId.value);
     }
     if (entityType.present) {
       map['entity_type'] = Variable<String>(entityType.value);
@@ -4664,6 +4765,7 @@ class SyncOutboxesCompanion extends UpdateCompanion<SyncOutboxe> {
   String toString() {
     return (StringBuffer('SyncOutboxesCompanion(')
           ..write('id: $id, ')
+          ..write('operationId: $operationId, ')
           ..write('entityType: $entityType, ')
           ..write('entityId: $entityId, ')
           ..write('status: $status, ')
@@ -4708,6 +4810,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
 typedef $$BatchesTableCreateCompanionBuilder =
     BatchesCompanion Function({
       Value<int> id,
+      Value<String?> remoteId,
       Value<String> batchNumber,
       Value<String> farmerId,
       Value<String> farmerName,
@@ -4729,6 +4832,7 @@ typedef $$BatchesTableCreateCompanionBuilder =
 typedef $$BatchesTableUpdateCompanionBuilder =
     BatchesCompanion Function({
       Value<int> id,
+      Value<String?> remoteId,
       Value<String> batchNumber,
       Value<String> farmerId,
       Value<String> farmerName,
@@ -4759,6 +4863,11 @@ class $$BatchesTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remoteId => $composableBuilder(
+    column: $table.remoteId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -4862,6 +4971,11 @@ class $$BatchesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get batchNumber => $composableBuilder(
     column: $table.batchNumber,
     builder: (column) => ColumnOrderings(column),
@@ -4960,6 +5074,9 @@ class $$BatchesTableAnnotationComposer
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
+  GeneratedColumn<String> get remoteId =>
+      $composableBuilder(column: $table.remoteId, builder: (column) => column);
+
   GeneratedColumn<String> get batchNumber => $composableBuilder(
     column: $table.batchNumber,
     builder: (column) => column,
@@ -5053,6 +5170,7 @@ class $$BatchesTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> remoteId = const Value.absent(),
                 Value<String> batchNumber = const Value.absent(),
                 Value<String> farmerId = const Value.absent(),
                 Value<String> farmerName = const Value.absent(),
@@ -5072,6 +5190,7 @@ class $$BatchesTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => BatchesCompanion(
                 id: id,
+                remoteId: remoteId,
                 batchNumber: batchNumber,
                 farmerId: farmerId,
                 farmerName: farmerName,
@@ -5093,6 +5212,7 @@ class $$BatchesTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> remoteId = const Value.absent(),
                 Value<String> batchNumber = const Value.absent(),
                 Value<String> farmerId = const Value.absent(),
                 Value<String> farmerName = const Value.absent(),
@@ -5112,6 +5232,7 @@ class $$BatchesTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => BatchesCompanion.insert(
                 id: id,
+                remoteId: remoteId,
                 batchNumber: batchNumber,
                 farmerId: farmerId,
                 farmerName: farmerName,
@@ -6647,6 +6768,7 @@ typedef $$CageMaintenancesTableProcessedTableManager =
 typedef $$SyncOutboxesTableCreateCompanionBuilder =
     SyncOutboxesCompanion Function({
       Value<int> id,
+      required String operationId,
       required String entityType,
       Value<String?> entityId,
       Value<String> status,
@@ -6660,6 +6782,7 @@ typedef $$SyncOutboxesTableCreateCompanionBuilder =
 typedef $$SyncOutboxesTableUpdateCompanionBuilder =
     SyncOutboxesCompanion Function({
       Value<int> id,
+      Value<String> operationId,
       Value<String> entityType,
       Value<String?> entityId,
       Value<String> status,
@@ -6682,6 +6805,11 @@ class $$SyncOutboxesTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get operationId => $composableBuilder(
+    column: $table.operationId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6745,6 +6873,11 @@ class $$SyncOutboxesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get operationId => $composableBuilder(
+    column: $table.operationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get entityType => $composableBuilder(
     column: $table.entityType,
     builder: (column) => ColumnOrderings(column),
@@ -6802,6 +6935,11 @@ class $$SyncOutboxesTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get operationId => $composableBuilder(
+    column: $table.operationId,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get entityType => $composableBuilder(
     column: $table.entityType,
@@ -6869,6 +7007,7 @@ class $$SyncOutboxesTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String> operationId = const Value.absent(),
                 Value<String> entityType = const Value.absent(),
                 Value<String?> entityId = const Value.absent(),
                 Value<String> status = const Value.absent(),
@@ -6880,6 +7019,7 @@ class $$SyncOutboxesTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => SyncOutboxesCompanion(
                 id: id,
+                operationId: operationId,
                 entityType: entityType,
                 entityId: entityId,
                 status: status,
@@ -6893,6 +7033,7 @@ class $$SyncOutboxesTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                required String operationId,
                 required String entityType,
                 Value<String?> entityId = const Value.absent(),
                 Value<String> status = const Value.absent(),
@@ -6904,6 +7045,7 @@ class $$SyncOutboxesTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => SyncOutboxesCompanion.insert(
                 id: id,
+                operationId: operationId,
                 entityType: entityType,
                 entityId: entityId,
                 status: status,

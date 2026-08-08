@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 class SyncOutboxes extends Table {
   IntColumn get id => integer().autoIncrement()();
+  TextColumn get operationId => text().named('operation_id')();
   TextColumn get entityType => text().named('entity_type')();
   TextColumn get entityId => text().named('entity_id').nullable()();
   TextColumn get status => text().withDefault(const Constant('pending'))();

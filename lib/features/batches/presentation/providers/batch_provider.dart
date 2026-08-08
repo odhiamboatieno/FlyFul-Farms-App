@@ -2,11 +2,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flyful_farms/core/database/app_database.dart';
 import 'package:flyful_farms/core/database/daos/batch_dao.dart';
 import 'package:flyful_farms/core/database/daos/sync_dao.dart';
+import 'package:uuid/uuid.dart';
 import 'package:drift/drift.dart' as drift;
+import 'dart:convert';
 
 class BatchProvider extends ChangeNotifier {
   final BatchDao _batchDao;
   final SyncDao _syncDao;
+  final Uuid _uuid = const Uuid();
 
   BatchProvider(this._batchDao, this._syncDao);
 
@@ -50,11 +53,15 @@ class BatchProvider extends ChangeNotifier {
     String? farmerName,
   }) async {
     final now = DateTime.now();
+    final remoteId = _uuid.v4();
     final companion = BatchesCompanion.insert(
+      remoteId: drift.Value(remoteId),
       batchNumber: drift.Value(batchNumber),
       wasteType: drift.Value(wasteType),
       wasteQuantityKg: drift.Value(wasteQuantityKg),
       neonatesAdded: drift.Value(neonatesAdded),
+      status: drift.Value('active'),
+      dayNumber: drift.Value(0),
       startDate: startDate ?? now.toIso8601String(),
       expectedHarvestDate: expectedHarvestDate ?? '',
       notes: drift.Value(notes),
@@ -63,15 +70,16 @@ class BatchProvider extends ChangeNotifier {
       updatedAt: drift.Value(now),
     );
 
-    final id = await _batchDao.insertBatch(companion);
+    await _batchDao.insertBatch(companion);
 
     await _syncDao.insertSyncOperation(
       SyncOutboxesCompanion.insert(
+        operationId: _uuid.v4(),
         entityType: 'batch',
-        entityId: drift.Value('$id'),
+        entityId: drift.Value(remoteId),
         operation: drift.Value('create'),
         payload: drift.Value(
-          _batchToJson(companion),
+          jsonEncode(_batchToJson(companion)),
         ),
       ),
     );
@@ -79,8 +87,18 @@ class BatchProvider extends ChangeNotifier {
     await loadBatches();
   }
 
-  String _batchToJson(BatchesCompanion b) {
-    return '{"batchNumber":"${b.batchNumber.value}","wasteType":"${b.wasteType.value}",'
-        '"wasteQuantityKg":${b.wasteQuantityKg.value},"neonatesAdded":${b.neonatesAdded.value}}';
+  Map<String, dynamic> _batchToJson(BatchesCompanion b) {
+    return {
+      'batchNumber': b.batchNumber.value,
+      'wasteType': b.wasteType.value,
+      'wasteQuantityKg': b.wasteQuantityKg.value,
+      'neonatesAdded': b.neonatesAdded.value,
+      'status': b.status.value,
+      'dayNumber': b.dayNumber.value,
+      'startDate': b.startDate.value,
+      'expectedHarvestDate': b.expectedHarvestDate.value,
+      'notes': b.notes.value,
+      'farmerName': b.farmerName.value,
+    };
   }
 }

@@ -17,11 +17,13 @@ void main() {
   });
 
   Future<int> insertOp({
+    String? operationId,
     String entityType = 'batch',
     String status = 'pending',
   }) {
     return dao.insertSyncOperation(
       SyncOutboxesCompanion.insert(
+        operationId: operationId ?? 'op-${DateTime.now().microsecondsSinceEpoch}',
         entityType: entityType,
         status: Value(status),
       ),
@@ -46,12 +48,14 @@ void main() {
   test('getPendingOperations orders by newest first', () async {
     await dao.insertSyncOperation(
       SyncOutboxesCompanion.insert(
+        operationId: 'op-first',
         entityType: 'first',
         createdAt: Value(DateTime(2026, 8, 1, 10, 0, 0)),
       ),
     );
     await dao.insertSyncOperation(
       SyncOutboxesCompanion.insert(
+        operationId: 'op-second',
         entityType: 'second',
         createdAt: Value(DateTime(2026, 8, 1, 11, 0, 0)),
       ),
