@@ -1,8 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
+import 'package:flyful_farms/features/batches/presentation/providers/batch_provider.dart';
+import 'package:provider/provider.dart';
 
-class CreateBatchPage extends StatelessWidget {
+class CreateBatchPage extends StatefulWidget {
   const CreateBatchPage({super.key});
+
+  @override
+  State<CreateBatchPage> createState() => _CreateBatchPageState();
+}
+
+class _CreateBatchPageState extends State<CreateBatchPage> {
+  final _numberController = TextEditingController();
+  final _wasteController = TextEditingController();
+  final _quantityController = TextEditingController();
+  final _neonatesController = TextEditingController();
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _numberController.dispose();
+    _wasteController.dispose();
+    _quantityController.dispose();
+    _neonatesController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _createBatch() async {
+    final number = _numberController.text.trim();
+    final waste = _wasteController.text.trim();
+    final quantity = double.tryParse(_quantityController.text.trim()) ?? 0;
+    final neonates = int.tryParse(_neonatesController.text.trim()) ?? 0;
+
+    if (number.isEmpty || waste.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill in batch number and waste type')),
+      );
+      return;
+    }
+
+    setState(() => _saving = true);
+    try {
+      final wasteType = waste.toLowerCase().replaceAll(' ', '_');
+      await context.read<BatchProvider>().createBatch(
+        batchNumber: number,
+        wasteType: wasteType,
+        wasteQuantityKg: quantity,
+        neonatesAdded: neonates,
+      );
+      if (!mounted) return;
+      Navigator.pushNamed(context, '/success');
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not save batch. Please try again.')),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,13 +70,35 @@ class CreateBatchPage extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             _buildPageHeader(context, 'New batch', 'Enter batch details'),
             const SizedBox(height: 16),
-            const TextField(decoration: InputDecoration(labelText: 'Batch number')),
+            TextField(
+              controller: _numberController,
+              decoration: const InputDecoration(labelText: 'Batch number'),
+            ),
             const SizedBox(height: 16),
-            const TextField(decoration: InputDecoration(labelText: 'Waste type')),
+            TextField(
+              controller: _wasteController,
+              decoration: const InputDecoration(labelText: 'Waste type'),
+            ),
             const SizedBox(height: 16),
-            const TextField(decoration: InputDecoration(labelText: 'Quantity (KG)'), keyboardType: TextInputType.number),
+            TextField(
+              controller: _quantityController,
+              decoration: const InputDecoration(labelText: 'Quantity (KG)'),
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _neonatesController,
+              decoration: const InputDecoration(labelText: 'Neonates added'),
+              keyboardType: TextInputType.number,
+            ),
             const SizedBox(height: 24),
-            ElevatedButton(onPressed: () => Navigator.pop(context), child: const Text('CREATE BATCH')),
+            ElevatedButton(
+              onPressed: _saving ? null : _createBatch,
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.green, padding: const EdgeInsets.symmetric(vertical: 15)),
+              child: _saving
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('CREATE BATCH', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+            ),
           ]),
         ),
       ),

@@ -1,0 +1,86 @@
+import 'package:flutter/foundation.dart';
+import 'package:flyful_farms/core/database/app_database.dart';
+import 'package:flyful_farms/core/database/daos/batch_dao.dart';
+import 'package:flyful_farms/core/database/daos/sync_dao.dart';
+import 'package:drift/drift.dart' as drift;
+
+class BatchProvider extends ChangeNotifier {
+  final BatchDao _batchDao;
+  final SyncDao _syncDao;
+
+  BatchProvider(this._batchDao, this._syncDao);
+
+  List<Batche> _batches = [];
+  bool _loading = false;
+  String? _error;
+
+  List<Batche> get batches => List.unmodifiable(_batches);
+  bool get loading => _loading;
+  String? get error => _error;
+
+  Future<void> loadBatches() async {
+    _loading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      _batches = await _batchDao.getAllBatches();
+    } catch (e) {
+      _error = 'Could not load batches.';
+    } finally {
+      _loading = false;
+      notifyListeners();
+    }
+  }
+
+  Batche? batchById(int id) {
+    for (final b in _batches) {
+      if (b.id == id) return b;
+    }
+    return null;
+  }
+
+  Future<void> createBatch({
+    required String batchNumber,
+    required String wasteType,
+    required double wasteQuantityKg,
+    int neonatesAdded = 0,
+    String? startDate,
+    String? expectedHarvestDate,
+    String? notes,
+    String? farmerName,
+  }) async {
+    final now = DateTime.now();
+    final companion = BatchesCompanion.insert(
+      batchNumber: drift.Value(batchNumber),
+      wasteType: drift.Value(wasteType),
+      wasteQuantityKg: drift.Value(wasteQuantityKg),
+      neonatesAdded: drift.Value(neonatesAdded),
+      startDate: startDate ?? now.toIso8601String(),
+      expectedHarvestDate: expectedHarvestDate ?? '',
+      notes: drift.Value(notes),
+      farmerName: drift.Value(farmerName ?? ''),
+      createdAt: drift.Value(now),
+      updatedAt: drift.Value(now),
+    );
+
+    final id = await _batchDao.insertBatch(companion);
+
+    await _syncDao.insertSyncOperation(
+      SyncOutboxesCompanion.insert(
+        entityType: 'batch',
+        entityId: drift.Value('$id'),
+        operation: drift.Value('create'),
+        payload: drift.Value(
+          _batchToJson(companion),
+        ),
+      ),
+    );
+
+    await loadBatches();
+  }
+
+  String _batchToJson(BatchesCompanion b) {
+    return '{"batchNumber":"${b.batchNumber.value}","wasteType":"${b.wasteType.value}",'
+        '"wasteQuantityKg":${b.wasteQuantityKg.value},"neonatesAdded":${b.neonatesAdded.value}}';
+  }
+}

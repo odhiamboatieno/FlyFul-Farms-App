@@ -1,30 +1,79 @@
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/shared/widgets/bottom_nav.dart';
+import 'package:flyful_farms/features/batches/presentation/providers/batch_provider.dart';
+import 'package:provider/provider.dart';
 
 class BatchDetailPage extends StatelessWidget {
-  final String id;
+  final int id;
   const BatchDetailPage({super.key, required this.id});
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<BatchProvider>();
+    final batch = provider.batchById(id);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 17),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            _buildPageHeader(context, 'Batch $id', 'Vegetables · Day 3'),
-            const SizedBox(height: 16),
-            _buildStatCard('Larvae', '5.2 KG', Icons.eco),
-            const SizedBox(height: 9),
-            _buildStatCard('Frass', '1.8 KG', Icons.recycling),
-            const SizedBox(height: 9),
-            _buildStatCard('Feeding', '12.0 KG', Icons.food_bank),
+            _buildPageHeader(context, batch?.batchNumber ?? 'Batch $id', batch == null
+                ? 'Batch not found'
+                : '${_wasteLabel(batch.wasteType)} · Day ${batch.dayNumber}'),
+            if (batch != null) ...[
+              const SizedBox(height: 16),
+              _buildInfoCard(batch),
+              const SizedBox(height: 9),
+              _buildStatCard('Waste quantity', '${batch.wasteQuantityKg.toStringAsFixed(1)} KG', Icons.shopping_basket),
+              const SizedBox(height: 9),
+              _buildStatCard('Neonates added', '${batch.neonatesAdded}', Icons.eco),
+              const SizedBox(height: 9),
+              _buildStatCard('Status', batch.status, Icons.speed),
+            ],
           ]),
         ),
       ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 1),
+    );
+  }
+
+  String _wasteLabel(String wasteType) {
+    switch (wasteType) {
+      case 'vegetables':
+        return 'Vegetables';
+      case 'market_waste':
+        return 'Market waste';
+      case 'kitchen_waste':
+        return 'Kitchen waste';
+      default:
+        return wasteType.isEmpty ? 'Mixed waste' : wasteType.replaceAll('_', ' ');
+    }
+  }
+
+  Widget _buildInfoCard(dynamic batch) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(5),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, 3))]),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('Batch details', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
+        const SizedBox(height: 8),
+        _infoRow('Waste type', _wasteLabel(batch.wasteType)),
+        _infoRow('Farmer', batch.farmerName.isEmpty ? '—' : batch.farmerName),
+        _infoRow('Started', batch.startDate.isEmpty ? '—' : batch.startDate.substring(0, 10)),
+      ]),
+    );
+  }
+
+  Widget _infoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Text(label, style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+        Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.ink)),
+      ]),
     );
   }
 

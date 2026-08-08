@@ -5,6 +5,7 @@ import 'package:flyful_farms/core/network/connectivity.dart';
 import 'package:flyful_farms/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:flyful_farms/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:flyful_farms/features/auth/domain/auth_service.dart';
+import 'package:flyful_farms/features/batches/presentation/providers/batch_provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 final getIt = GetIt.instance;
@@ -23,6 +24,10 @@ Future<void> initDI() async {
 
   getIt.registerLazySingleton<AuthService>(
     () => AuthRepositoryImpl(getIt<AuthRemoteDataSource>(), getIt<FlutterSecureStorage>()),
+  );
+
+  getIt.registerFactory<BatchProvider>(
+    () => BatchProvider(getIt<AppDatabase>().batchDao, getIt<AppDatabase>().syncDao),
   );
 }
 

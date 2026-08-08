@@ -6,6 +6,7 @@ import 'package:flyful_farms/shared/l10n/app_localizations.dart';
 import 'package:flyful_farms/shared/widgets/phone_frame.dart';
 import 'package:provider/provider.dart';
 import 'package:flyful_farms/features/auth/presentation/providers/auth_provider.dart';
+import 'package:flyful_farms/features/batches/presentation/providers/batch_provider.dart';
 import 'package:flyful_farms/config/di.dart';
 import 'package:flyful_farms/features/auth/domain/auth_service.dart';
 
@@ -14,8 +15,15 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AuthProvider(getIt<AuthService>()),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(getIt<AuthService>()),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => getIt<BatchProvider>()..loadBatches(),
+        ),
+      ],
       child: MaterialApp.router(
         title: 'Flyful Farms',
         theme: AppTheme.light,

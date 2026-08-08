@@ -42,7 +42,8 @@ class AppRouter {
       GoRoute(path: '/today', builder: (context, state) => const TodayPage()),
       GoRoute(path: '/jobs', builder: (context, state) => const JobsPage()),
       GoRoute(path: '/batches', builder: (context, state) => const BatchListPage()),
-      GoRoute(path: '/batches/:id', builder: (context, state) => BatchDetailPage(id: state.pathParameters['id']!)),
+      GoRoute(path: '/batches/:id', builder: (context, state) =>
+          BatchDetailPage(id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0)),
       GoRoute(path: '/batches/new', builder: (context, state) => const CreateBatchPage()),
       GoRoute(path: '/cages', builder: (context, state) => const CagesPage()),
       GoRoute(path: '/cages/:id', builder: (context, state) => const CageDetailPage()),
