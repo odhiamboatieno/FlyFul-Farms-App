@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 class CageMaintenances extends Table {
   IntColumn get id => integer().autoIncrement()();
+  TextColumn get remoteId => text().named('remote_id').nullable()();
   TextColumn get cageId => text().named('cage_id')();
   DateTimeColumn get maintenanceDate => dateTime().named('maintenance_date')();
   BoolColumn get waterChanged => boolean().named('water_changed').withDefault(const Constant(false))();

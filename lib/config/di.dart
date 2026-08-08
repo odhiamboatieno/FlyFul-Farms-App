@@ -40,6 +40,7 @@ Future<void> initDI() async {
   getIt.registerLazySingleton<SyncService>(
     () => SyncService(
       getIt<AppDatabase>().syncDao,
+      getIt<AppDatabase>().downloadDao,
       _SecureSyncStorage(getIt<FlutterSecureStorage>()),
       post: (path, data) => getIt<ApiClient>().post(path, data: data),
       get: (path, {queryParameters}) => getIt<ApiClient>().get(path, queryParameters: queryParameters),

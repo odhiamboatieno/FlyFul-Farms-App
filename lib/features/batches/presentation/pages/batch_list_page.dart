@@ -22,15 +22,21 @@ class _BatchListPageState extends State<BatchListPage> {
     setState(() => _syncing = true);
     try {
       final result = await syncService.syncNow();
+      int downloaded = 0;
+      try {
+        downloaded = await syncService.syncDownload();
+      } catch (_) {}
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             result.processed > 0
-                ? 'Synced ${result.processed} offline change(s)'
-                : result.failed > 0
-                    ? 'Sync failed for ${result.failed} item(s)'
-                    : 'Nothing to sync',
+                ? 'Synced ${result.processed} upload + $downloaded downloaded'
+                : downloaded > 0
+                    ? 'Downloaded $downloaded change(s)'
+                    : result.failed > 0
+                        ? 'Sync failed for ${result.failed} item(s)'
+                        : 'Everything is in sync',
           ),
         ),
       );

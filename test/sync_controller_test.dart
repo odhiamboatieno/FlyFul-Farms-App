@@ -55,6 +55,7 @@ void main() {
   SyncController buildController() {
     final sync = SyncService(
       db.syncDao,
+      db.downloadDao,
       storage,
       post: (path, data) async {
         callCount++;
@@ -77,7 +78,12 @@ void main() {
           },
         };
       },
-      get: (path, {queryParameters}) async => {'status': 'success', 'data': <dynamic>[]},
+      get: (path, {queryParameters}) async => {
+            'status': 'success',
+            'data': path.contains('/sync/download')
+                ? {'changes': <dynamic>[], 'count': 0, 'since': '2026-08-01T00:00:00.000Z'}
+                : <dynamic>[],
+          },
     );
     return SyncController(sync, network);
   }

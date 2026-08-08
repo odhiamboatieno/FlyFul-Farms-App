@@ -30,9 +30,10 @@ void main() {
     await db.close();
   });
 
-  SyncService buildService({List<Map<String, dynamic>>? farms, bool? succeed}) {
+  SyncService buildService({List<Map<String, dynamic>>? farms, bool? succeed, Map<String, dynamic>? download}) {
     return SyncService(
       db.syncDao,
+      db.downloadDao,
       storage,
       post: (path, data) async {
         final operations = (data['operations'] as List).cast<Map<String, dynamic>>();
@@ -54,7 +55,16 @@ void main() {
           },
         };
       },
-      get: (path, {queryParameters}) async => {'status': 'success', 'data': farms ?? <dynamic>[]},
+      get: (path, {queryParameters}) async {
+        if (path.contains('/sync/download')) {
+          return download ??
+              {
+                'status': 'success',
+                'data': {'changes': <dynamic>[], 'count': 0, 'since': '2026-08-01T00:00:00.000Z'},
+              };
+        }
+        return {'status': 'success', 'data': farms ?? <dynamic>[]};
+      },
     );
   }
 
@@ -71,6 +81,7 @@ void main() {
 
     final sync = SyncService(
       db.syncDao,
+      db.downloadDao,
       storage,
       post: (path, data) async {
         lastBody = data;
@@ -165,5 +176,56 @@ void main() {
 
     final pending = await db.syncDao.getPendingOperations();
     expect(pending, isEmpty);
+  });
+
+  test('syncDownload applies server changes to local tables', () async {
+    final sync = buildService(download: {
+      'status': 'success',
+      'data': {
+        'changes': [
+          {
+            'entityType': 'feeding',
+            'entityId': 'f1',
+            'payload': {'id': 'f1', 'batchId': 'b1', 'wasteType': 'vegetable', 'wasteQuantityKg': 12.5, 'occurredAt': '2026-08-05T10:00:00.000Z'},
+          },
+          {
+            'entityType': 'egg_collection',
+            'entityId': 'e1',
+            'payload': {'id': 'e1', 'cageId': 'c1', 'eggWeightGrams': '250', 'quality': 'good', 'collectionDate': '2026-08-05T10:00:00.000Z'},
+          },
+        ],
+        'count': 2,
+        'since': '2026-08-06T00:00:00.000Z',
+      },
+    });
+
+    final applied = await sync.syncDownload();
+
+    expect(applied, 2);
+    expect(await db.downloadDao.allFeedings(), hasLength(1));
+    expect(await db.downloadDao.allEggCollections(), hasLength(1));
+    expect(storage.store['sync_last_download'], '2026-08-06T00:00:00.000Z');
+  });
+
+  test('syncDownload is idempotent for repeated changes', () async {
+    final sync = buildService(download: {
+      'status': 'success',
+      'data': {
+        'changes': [
+          {
+            'entityType': 'harvest',
+            'entityId': 'h1',
+            'payload': {'id': 'h1', 'batchId': 'b1', 'wetLarvaeKg': 30.0, 'harvestDate': '2026-08-05T10:00:00.000Z'},
+          },
+        ],
+        'count': 1,
+        'since': '2026-08-06T00:00:00.000Z',
+      },
+    });
+
+    await sync.syncDownload();
+    await sync.syncDownload();
+
+    expect(await db.downloadDao.allHarvests(), hasLength(1));
   });
 }

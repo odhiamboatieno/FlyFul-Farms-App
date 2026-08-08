@@ -1932,6 +1932,17 @@ class $FeedingsTable extends Feedings with TableInfo<$FeedingsTable, Feeding> {
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
+  static const VerificationMeta _remoteIdMeta = const VerificationMeta(
+    'remoteId',
+  );
+  @override
+  late final GeneratedColumn<String> remoteId = GeneratedColumn<String>(
+    'remote_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _batchIdMeta = const VerificationMeta(
     'batchId',
   );
@@ -2021,6 +2032,7 @@ class $FeedingsTable extends Feedings with TableInfo<$FeedingsTable, Feeding> {
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    remoteId,
     batchId,
     wasteQuantityKg,
     wasteType,
@@ -2044,6 +2056,12 @@ class $FeedingsTable extends Feedings with TableInfo<$FeedingsTable, Feeding> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('remote_id')) {
+      context.handle(
+        _remoteIdMeta,
+        remoteId.isAcceptableOrUnknown(data['remote_id']!, _remoteIdMeta),
+      );
     }
     if (data.containsKey('batch_id')) {
       context.handle(
@@ -2117,6 +2135,10 @@ class $FeedingsTable extends Feedings with TableInfo<$FeedingsTable, Feeding> {
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      remoteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_id'],
+      ),
       batchId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}batch_id'],
@@ -2160,6 +2182,7 @@ class $FeedingsTable extends Feedings with TableInfo<$FeedingsTable, Feeding> {
 
 class Feeding extends DataClass implements Insertable<Feeding> {
   final int id;
+  final String? remoteId;
   final String batchId;
   final double wasteQuantityKg;
   final String wasteType;
@@ -2170,6 +2193,7 @@ class Feeding extends DataClass implements Insertable<Feeding> {
   final DateTime updatedAt;
   const Feeding({
     required this.id,
+    this.remoteId,
     required this.batchId,
     required this.wasteQuantityKg,
     required this.wasteType,
@@ -2183,6 +2207,9 @@ class Feeding extends DataClass implements Insertable<Feeding> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    if (!nullToAbsent || remoteId != null) {
+      map['remote_id'] = Variable<String>(remoteId);
+    }
     map['batch_id'] = Variable<String>(batchId);
     map['waste_quantity_kg'] = Variable<double>(wasteQuantityKg);
     map['waste_type'] = Variable<String>(wasteType);
@@ -2201,6 +2228,9 @@ class Feeding extends DataClass implements Insertable<Feeding> {
   FeedingsCompanion toCompanion(bool nullToAbsent) {
     return FeedingsCompanion(
       id: Value(id),
+      remoteId: remoteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteId),
       batchId: Value(batchId),
       wasteQuantityKg: Value(wasteQuantityKg),
       wasteType: Value(wasteType),
@@ -2223,6 +2253,7 @@ class Feeding extends DataClass implements Insertable<Feeding> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Feeding(
       id: serializer.fromJson<int>(json['id']),
+      remoteId: serializer.fromJson<String?>(json['remoteId']),
       batchId: serializer.fromJson<String>(json['batchId']),
       wasteQuantityKg: serializer.fromJson<double>(json['wasteQuantityKg']),
       wasteType: serializer.fromJson<String>(json['wasteType']),
@@ -2238,6 +2269,7 @@ class Feeding extends DataClass implements Insertable<Feeding> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'remoteId': serializer.toJson<String?>(remoteId),
       'batchId': serializer.toJson<String>(batchId),
       'wasteQuantityKg': serializer.toJson<double>(wasteQuantityKg),
       'wasteType': serializer.toJson<String>(wasteType),
@@ -2251,6 +2283,7 @@ class Feeding extends DataClass implements Insertable<Feeding> {
 
   Feeding copyWith({
     int? id,
+    Value<String?> remoteId = const Value.absent(),
     String? batchId,
     double? wasteQuantityKg,
     String? wasteType,
@@ -2261,6 +2294,7 @@ class Feeding extends DataClass implements Insertable<Feeding> {
     DateTime? updatedAt,
   }) => Feeding(
     id: id ?? this.id,
+    remoteId: remoteId.present ? remoteId.value : this.remoteId,
     batchId: batchId ?? this.batchId,
     wasteQuantityKg: wasteQuantityKg ?? this.wasteQuantityKg,
     wasteType: wasteType ?? this.wasteType,
@@ -2273,6 +2307,7 @@ class Feeding extends DataClass implements Insertable<Feeding> {
   Feeding copyWithCompanion(FeedingsCompanion data) {
     return Feeding(
       id: data.id.present ? data.id.value : this.id,
+      remoteId: data.remoteId.present ? data.remoteId.value : this.remoteId,
       batchId: data.batchId.present ? data.batchId.value : this.batchId,
       wasteQuantityKg: data.wasteQuantityKg.present
           ? data.wasteQuantityKg.value
@@ -2290,6 +2325,7 @@ class Feeding extends DataClass implements Insertable<Feeding> {
   String toString() {
     return (StringBuffer('Feeding(')
           ..write('id: $id, ')
+          ..write('remoteId: $remoteId, ')
           ..write('batchId: $batchId, ')
           ..write('wasteQuantityKg: $wasteQuantityKg, ')
           ..write('wasteType: $wasteType, ')
@@ -2305,6 +2341,7 @@ class Feeding extends DataClass implements Insertable<Feeding> {
   @override
   int get hashCode => Object.hash(
     id,
+    remoteId,
     batchId,
     wasteQuantityKg,
     wasteType,
@@ -2319,6 +2356,7 @@ class Feeding extends DataClass implements Insertable<Feeding> {
       identical(this, other) ||
       (other is Feeding &&
           other.id == this.id &&
+          other.remoteId == this.remoteId &&
           other.batchId == this.batchId &&
           other.wasteQuantityKg == this.wasteQuantityKg &&
           other.wasteType == this.wasteType &&
@@ -2331,6 +2369,7 @@ class Feeding extends DataClass implements Insertable<Feeding> {
 
 class FeedingsCompanion extends UpdateCompanion<Feeding> {
   final Value<int> id;
+  final Value<String?> remoteId;
   final Value<String> batchId;
   final Value<double> wasteQuantityKg;
   final Value<String> wasteType;
@@ -2341,6 +2380,7 @@ class FeedingsCompanion extends UpdateCompanion<Feeding> {
   final Value<DateTime> updatedAt;
   const FeedingsCompanion({
     this.id = const Value.absent(),
+    this.remoteId = const Value.absent(),
     this.batchId = const Value.absent(),
     this.wasteQuantityKg = const Value.absent(),
     this.wasteType = const Value.absent(),
@@ -2352,6 +2392,7 @@ class FeedingsCompanion extends UpdateCompanion<Feeding> {
   });
   FeedingsCompanion.insert({
     this.id = const Value.absent(),
+    this.remoteId = const Value.absent(),
     required String batchId,
     required double wasteQuantityKg,
     required String wasteType,
@@ -2366,6 +2407,7 @@ class FeedingsCompanion extends UpdateCompanion<Feeding> {
        fedAt = Value(fedAt);
   static Insertable<Feeding> custom({
     Expression<int>? id,
+    Expression<String>? remoteId,
     Expression<String>? batchId,
     Expression<double>? wasteQuantityKg,
     Expression<String>? wasteType,
@@ -2377,6 +2419,7 @@ class FeedingsCompanion extends UpdateCompanion<Feeding> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (remoteId != null) 'remote_id': remoteId,
       if (batchId != null) 'batch_id': batchId,
       if (wasteQuantityKg != null) 'waste_quantity_kg': wasteQuantityKg,
       if (wasteType != null) 'waste_type': wasteType,
@@ -2390,6 +2433,7 @@ class FeedingsCompanion extends UpdateCompanion<Feeding> {
 
   FeedingsCompanion copyWith({
     Value<int>? id,
+    Value<String?>? remoteId,
     Value<String>? batchId,
     Value<double>? wasteQuantityKg,
     Value<String>? wasteType,
@@ -2401,6 +2445,7 @@ class FeedingsCompanion extends UpdateCompanion<Feeding> {
   }) {
     return FeedingsCompanion(
       id: id ?? this.id,
+      remoteId: remoteId ?? this.remoteId,
       batchId: batchId ?? this.batchId,
       wasteQuantityKg: wasteQuantityKg ?? this.wasteQuantityKg,
       wasteType: wasteType ?? this.wasteType,
@@ -2417,6 +2462,9 @@ class FeedingsCompanion extends UpdateCompanion<Feeding> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (remoteId.present) {
+      map['remote_id'] = Variable<String>(remoteId.value);
     }
     if (batchId.present) {
       map['batch_id'] = Variable<String>(batchId.value);
@@ -2449,6 +2497,7 @@ class FeedingsCompanion extends UpdateCompanion<Feeding> {
   String toString() {
     return (StringBuffer('FeedingsCompanion(')
           ..write('id: $id, ')
+          ..write('remoteId: $remoteId, ')
           ..write('batchId: $batchId, ')
           ..write('wasteQuantityKg: $wasteQuantityKg, ')
           ..write('wasteType: $wasteType, ')
@@ -2479,6 +2528,17 @@ class $HarvestsTable extends Harvests with TableInfo<$HarvestsTable, Harvest> {
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'PRIMARY KEY AUTOINCREMENT',
     ),
+  );
+  static const VerificationMeta _remoteIdMeta = const VerificationMeta(
+    'remoteId',
+  );
+  @override
+  late final GeneratedColumn<String> remoteId = GeneratedColumn<String>(
+    'remote_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _batchIdMeta = const VerificationMeta(
     'batchId',
@@ -2580,6 +2640,7 @@ class $HarvestsTable extends Harvests with TableInfo<$HarvestsTable, Harvest> {
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    remoteId,
     batchId,
     wetLarvaeKg,
     frassKg,
@@ -2604,6 +2665,12 @@ class $HarvestsTable extends Harvests with TableInfo<$HarvestsTable, Harvest> {
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('remote_id')) {
+      context.handle(
+        _remoteIdMeta,
+        remoteId.isAcceptableOrUnknown(data['remote_id']!, _remoteIdMeta),
+      );
     }
     if (data.containsKey('batch_id')) {
       context.handle(
@@ -2684,6 +2751,10 @@ class $HarvestsTable extends Harvests with TableInfo<$HarvestsTable, Harvest> {
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      remoteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_id'],
+      ),
       batchId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}batch_id'],
@@ -2731,6 +2802,7 @@ class $HarvestsTable extends Harvests with TableInfo<$HarvestsTable, Harvest> {
 
 class Harvest extends DataClass implements Insertable<Harvest> {
   final int id;
+  final String? remoteId;
   final String batchId;
   final double wetLarvaeKg;
   final double? frassKg;
@@ -2742,6 +2814,7 @@ class Harvest extends DataClass implements Insertable<Harvest> {
   final DateTime updatedAt;
   const Harvest({
     required this.id,
+    this.remoteId,
     required this.batchId,
     required this.wetLarvaeKg,
     this.frassKg,
@@ -2756,6 +2829,9 @@ class Harvest extends DataClass implements Insertable<Harvest> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    if (!nullToAbsent || remoteId != null) {
+      map['remote_id'] = Variable<String>(remoteId);
+    }
     map['batch_id'] = Variable<String>(batchId);
     map['wet_larvae_kg'] = Variable<double>(wetLarvaeKg);
     if (!nullToAbsent || frassKg != null) {
@@ -2779,6 +2855,9 @@ class Harvest extends DataClass implements Insertable<Harvest> {
   HarvestsCompanion toCompanion(bool nullToAbsent) {
     return HarvestsCompanion(
       id: Value(id),
+      remoteId: remoteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteId),
       batchId: Value(batchId),
       wetLarvaeKg: Value(wetLarvaeKg),
       frassKg: frassKg == null && nullToAbsent
@@ -2806,6 +2885,7 @@ class Harvest extends DataClass implements Insertable<Harvest> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return Harvest(
       id: serializer.fromJson<int>(json['id']),
+      remoteId: serializer.fromJson<String?>(json['remoteId']),
       batchId: serializer.fromJson<String>(json['batchId']),
       wetLarvaeKg: serializer.fromJson<double>(json['wetLarvaeKg']),
       frassKg: serializer.fromJson<double?>(json['frassKg']),
@@ -2822,6 +2902,7 @@ class Harvest extends DataClass implements Insertable<Harvest> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'remoteId': serializer.toJson<String?>(remoteId),
       'batchId': serializer.toJson<String>(batchId),
       'wetLarvaeKg': serializer.toJson<double>(wetLarvaeKg),
       'frassKg': serializer.toJson<double?>(frassKg),
@@ -2836,6 +2917,7 @@ class Harvest extends DataClass implements Insertable<Harvest> {
 
   Harvest copyWith({
     int? id,
+    Value<String?> remoteId = const Value.absent(),
     String? batchId,
     double? wetLarvaeKg,
     Value<double?> frassKg = const Value.absent(),
@@ -2847,6 +2929,7 @@ class Harvest extends DataClass implements Insertable<Harvest> {
     DateTime? updatedAt,
   }) => Harvest(
     id: id ?? this.id,
+    remoteId: remoteId.present ? remoteId.value : this.remoteId,
     batchId: batchId ?? this.batchId,
     wetLarvaeKg: wetLarvaeKg ?? this.wetLarvaeKg,
     frassKg: frassKg.present ? frassKg.value : this.frassKg,
@@ -2860,6 +2943,7 @@ class Harvest extends DataClass implements Insertable<Harvest> {
   Harvest copyWithCompanion(HarvestsCompanion data) {
     return Harvest(
       id: data.id.present ? data.id.value : this.id,
+      remoteId: data.remoteId.present ? data.remoteId.value : this.remoteId,
       batchId: data.batchId.present ? data.batchId.value : this.batchId,
       wetLarvaeKg: data.wetLarvaeKg.present
           ? data.wetLarvaeKg.value
@@ -2880,6 +2964,7 @@ class Harvest extends DataClass implements Insertable<Harvest> {
   String toString() {
     return (StringBuffer('Harvest(')
           ..write('id: $id, ')
+          ..write('remoteId: $remoteId, ')
           ..write('batchId: $batchId, ')
           ..write('wetLarvaeKg: $wetLarvaeKg, ')
           ..write('frassKg: $frassKg, ')
@@ -2896,6 +2981,7 @@ class Harvest extends DataClass implements Insertable<Harvest> {
   @override
   int get hashCode => Object.hash(
     id,
+    remoteId,
     batchId,
     wetLarvaeKg,
     frassKg,
@@ -2911,6 +2997,7 @@ class Harvest extends DataClass implements Insertable<Harvest> {
       identical(this, other) ||
       (other is Harvest &&
           other.id == this.id &&
+          other.remoteId == this.remoteId &&
           other.batchId == this.batchId &&
           other.wetLarvaeKg == this.wetLarvaeKg &&
           other.frassKg == this.frassKg &&
@@ -2924,6 +3011,7 @@ class Harvest extends DataClass implements Insertable<Harvest> {
 
 class HarvestsCompanion extends UpdateCompanion<Harvest> {
   final Value<int> id;
+  final Value<String?> remoteId;
   final Value<String> batchId;
   final Value<double> wetLarvaeKg;
   final Value<double?> frassKg;
@@ -2935,6 +3023,7 @@ class HarvestsCompanion extends UpdateCompanion<Harvest> {
   final Value<DateTime> updatedAt;
   const HarvestsCompanion({
     this.id = const Value.absent(),
+    this.remoteId = const Value.absent(),
     this.batchId = const Value.absent(),
     this.wetLarvaeKg = const Value.absent(),
     this.frassKg = const Value.absent(),
@@ -2947,6 +3036,7 @@ class HarvestsCompanion extends UpdateCompanion<Harvest> {
   });
   HarvestsCompanion.insert({
     this.id = const Value.absent(),
+    this.remoteId = const Value.absent(),
     required String batchId,
     required double wetLarvaeKg,
     this.frassKg = const Value.absent(),
@@ -2961,6 +3051,7 @@ class HarvestsCompanion extends UpdateCompanion<Harvest> {
        harvestedAt = Value(harvestedAt);
   static Insertable<Harvest> custom({
     Expression<int>? id,
+    Expression<String>? remoteId,
     Expression<String>? batchId,
     Expression<double>? wetLarvaeKg,
     Expression<double>? frassKg,
@@ -2973,6 +3064,7 @@ class HarvestsCompanion extends UpdateCompanion<Harvest> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (remoteId != null) 'remote_id': remoteId,
       if (batchId != null) 'batch_id': batchId,
       if (wetLarvaeKg != null) 'wet_larvae_kg': wetLarvaeKg,
       if (frassKg != null) 'frass_kg': frassKg,
@@ -2987,6 +3079,7 @@ class HarvestsCompanion extends UpdateCompanion<Harvest> {
 
   HarvestsCompanion copyWith({
     Value<int>? id,
+    Value<String?>? remoteId,
     Value<String>? batchId,
     Value<double>? wetLarvaeKg,
     Value<double?>? frassKg,
@@ -2999,6 +3092,7 @@ class HarvestsCompanion extends UpdateCompanion<Harvest> {
   }) {
     return HarvestsCompanion(
       id: id ?? this.id,
+      remoteId: remoteId ?? this.remoteId,
       batchId: batchId ?? this.batchId,
       wetLarvaeKg: wetLarvaeKg ?? this.wetLarvaeKg,
       frassKg: frassKg ?? this.frassKg,
@@ -3016,6 +3110,9 @@ class HarvestsCompanion extends UpdateCompanion<Harvest> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (remoteId.present) {
+      map['remote_id'] = Variable<String>(remoteId.value);
     }
     if (batchId.present) {
       map['batch_id'] = Variable<String>(batchId.value);
@@ -3051,6 +3148,7 @@ class HarvestsCompanion extends UpdateCompanion<Harvest> {
   String toString() {
     return (StringBuffer('HarvestsCompanion(')
           ..write('id: $id, ')
+          ..write('remoteId: $remoteId, ')
           ..write('batchId: $batchId, ')
           ..write('wetLarvaeKg: $wetLarvaeKg, ')
           ..write('frassKg: $frassKg, ')
@@ -3083,6 +3181,17 @@ class $EggCollectionsTable extends EggCollections
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'PRIMARY KEY AUTOINCREMENT',
     ),
+  );
+  static const VerificationMeta _remoteIdMeta = const VerificationMeta(
+    'remoteId',
+  );
+  @override
+  late final GeneratedColumn<String> remoteId = GeneratedColumn<String>(
+    'remote_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _cageIdMeta = const VerificationMeta('cageId');
   @override
@@ -3175,6 +3284,7 @@ class $EggCollectionsTable extends EggCollections
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    remoteId,
     cageId,
     eggWeightGrams,
     quality,
@@ -3198,6 +3308,12 @@ class $EggCollectionsTable extends EggCollections
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('remote_id')) {
+      context.handle(
+        _remoteIdMeta,
+        remoteId.isAcceptableOrUnknown(data['remote_id']!, _remoteIdMeta),
+      );
     }
     if (data.containsKey('cage_id')) {
       context.handle(
@@ -3270,6 +3386,10 @@ class $EggCollectionsTable extends EggCollections
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      remoteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_id'],
+      ),
       cageId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}cage_id'],
@@ -3313,6 +3433,7 @@ class $EggCollectionsTable extends EggCollections
 
 class EggCollection extends DataClass implements Insertable<EggCollection> {
   final int id;
+  final String? remoteId;
   final String cageId;
   final String eggWeightGrams;
   final String quality;
@@ -3323,6 +3444,7 @@ class EggCollection extends DataClass implements Insertable<EggCollection> {
   final DateTime updatedAt;
   const EggCollection({
     required this.id,
+    this.remoteId,
     required this.cageId,
     required this.eggWeightGrams,
     required this.quality,
@@ -3336,6 +3458,9 @@ class EggCollection extends DataClass implements Insertable<EggCollection> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    if (!nullToAbsent || remoteId != null) {
+      map['remote_id'] = Variable<String>(remoteId);
+    }
     map['cage_id'] = Variable<String>(cageId);
     map['egg_weight_grams'] = Variable<String>(eggWeightGrams);
     map['quality'] = Variable<String>(quality);
@@ -3354,6 +3479,9 @@ class EggCollection extends DataClass implements Insertable<EggCollection> {
   EggCollectionsCompanion toCompanion(bool nullToAbsent) {
     return EggCollectionsCompanion(
       id: Value(id),
+      remoteId: remoteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteId),
       cageId: Value(cageId),
       eggWeightGrams: Value(eggWeightGrams),
       quality: Value(quality),
@@ -3376,6 +3504,7 @@ class EggCollection extends DataClass implements Insertable<EggCollection> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return EggCollection(
       id: serializer.fromJson<int>(json['id']),
+      remoteId: serializer.fromJson<String?>(json['remoteId']),
       cageId: serializer.fromJson<String>(json['cageId']),
       eggWeightGrams: serializer.fromJson<String>(json['eggWeightGrams']),
       quality: serializer.fromJson<String>(json['quality']),
@@ -3391,6 +3520,7 @@ class EggCollection extends DataClass implements Insertable<EggCollection> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'remoteId': serializer.toJson<String?>(remoteId),
       'cageId': serializer.toJson<String>(cageId),
       'eggWeightGrams': serializer.toJson<String>(eggWeightGrams),
       'quality': serializer.toJson<String>(quality),
@@ -3404,6 +3534,7 @@ class EggCollection extends DataClass implements Insertable<EggCollection> {
 
   EggCollection copyWith({
     int? id,
+    Value<String?> remoteId = const Value.absent(),
     String? cageId,
     String? eggWeightGrams,
     String? quality,
@@ -3414,6 +3545,7 @@ class EggCollection extends DataClass implements Insertable<EggCollection> {
     DateTime? updatedAt,
   }) => EggCollection(
     id: id ?? this.id,
+    remoteId: remoteId.present ? remoteId.value : this.remoteId,
     cageId: cageId ?? this.cageId,
     eggWeightGrams: eggWeightGrams ?? this.eggWeightGrams,
     quality: quality ?? this.quality,
@@ -3426,6 +3558,7 @@ class EggCollection extends DataClass implements Insertable<EggCollection> {
   EggCollection copyWithCompanion(EggCollectionsCompanion data) {
     return EggCollection(
       id: data.id.present ? data.id.value : this.id,
+      remoteId: data.remoteId.present ? data.remoteId.value : this.remoteId,
       cageId: data.cageId.present ? data.cageId.value : this.cageId,
       eggWeightGrams: data.eggWeightGrams.present
           ? data.eggWeightGrams.value
@@ -3445,6 +3578,7 @@ class EggCollection extends DataClass implements Insertable<EggCollection> {
   String toString() {
     return (StringBuffer('EggCollection(')
           ..write('id: $id, ')
+          ..write('remoteId: $remoteId, ')
           ..write('cageId: $cageId, ')
           ..write('eggWeightGrams: $eggWeightGrams, ')
           ..write('quality: $quality, ')
@@ -3460,6 +3594,7 @@ class EggCollection extends DataClass implements Insertable<EggCollection> {
   @override
   int get hashCode => Object.hash(
     id,
+    remoteId,
     cageId,
     eggWeightGrams,
     quality,
@@ -3474,6 +3609,7 @@ class EggCollection extends DataClass implements Insertable<EggCollection> {
       identical(this, other) ||
       (other is EggCollection &&
           other.id == this.id &&
+          other.remoteId == this.remoteId &&
           other.cageId == this.cageId &&
           other.eggWeightGrams == this.eggWeightGrams &&
           other.quality == this.quality &&
@@ -3486,6 +3622,7 @@ class EggCollection extends DataClass implements Insertable<EggCollection> {
 
 class EggCollectionsCompanion extends UpdateCompanion<EggCollection> {
   final Value<int> id;
+  final Value<String?> remoteId;
   final Value<String> cageId;
   final Value<String> eggWeightGrams;
   final Value<String> quality;
@@ -3496,6 +3633,7 @@ class EggCollectionsCompanion extends UpdateCompanion<EggCollection> {
   final Value<DateTime> updatedAt;
   const EggCollectionsCompanion({
     this.id = const Value.absent(),
+    this.remoteId = const Value.absent(),
     this.cageId = const Value.absent(),
     this.eggWeightGrams = const Value.absent(),
     this.quality = const Value.absent(),
@@ -3507,6 +3645,7 @@ class EggCollectionsCompanion extends UpdateCompanion<EggCollection> {
   });
   EggCollectionsCompanion.insert({
     this.id = const Value.absent(),
+    this.remoteId = const Value.absent(),
     required String cageId,
     this.eggWeightGrams = const Value.absent(),
     this.quality = const Value.absent(),
@@ -3519,6 +3658,7 @@ class EggCollectionsCompanion extends UpdateCompanion<EggCollection> {
        collectedAt = Value(collectedAt);
   static Insertable<EggCollection> custom({
     Expression<int>? id,
+    Expression<String>? remoteId,
     Expression<String>? cageId,
     Expression<String>? eggWeightGrams,
     Expression<String>? quality,
@@ -3530,6 +3670,7 @@ class EggCollectionsCompanion extends UpdateCompanion<EggCollection> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (remoteId != null) 'remote_id': remoteId,
       if (cageId != null) 'cage_id': cageId,
       if (eggWeightGrams != null) 'egg_weight_grams': eggWeightGrams,
       if (quality != null) 'quality': quality,
@@ -3543,6 +3684,7 @@ class EggCollectionsCompanion extends UpdateCompanion<EggCollection> {
 
   EggCollectionsCompanion copyWith({
     Value<int>? id,
+    Value<String?>? remoteId,
     Value<String>? cageId,
     Value<String>? eggWeightGrams,
     Value<String>? quality,
@@ -3554,6 +3696,7 @@ class EggCollectionsCompanion extends UpdateCompanion<EggCollection> {
   }) {
     return EggCollectionsCompanion(
       id: id ?? this.id,
+      remoteId: remoteId ?? this.remoteId,
       cageId: cageId ?? this.cageId,
       eggWeightGrams: eggWeightGrams ?? this.eggWeightGrams,
       quality: quality ?? this.quality,
@@ -3570,6 +3713,9 @@ class EggCollectionsCompanion extends UpdateCompanion<EggCollection> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (remoteId.present) {
+      map['remote_id'] = Variable<String>(remoteId.value);
     }
     if (cageId.present) {
       map['cage_id'] = Variable<String>(cageId.value);
@@ -3602,6 +3748,7 @@ class EggCollectionsCompanion extends UpdateCompanion<EggCollection> {
   String toString() {
     return (StringBuffer('EggCollectionsCompanion(')
           ..write('id: $id, ')
+          ..write('remoteId: $remoteId, ')
           ..write('cageId: $cageId, ')
           ..write('eggWeightGrams: $eggWeightGrams, ')
           ..write('quality: $quality, ')
@@ -3633,6 +3780,17 @@ class $CageMaintenancesTable extends CageMaintenances
     defaultConstraints: GeneratedColumn.constraintIsAlways(
       'PRIMARY KEY AUTOINCREMENT',
     ),
+  );
+  static const VerificationMeta _remoteIdMeta = const VerificationMeta(
+    'remoteId',
+  );
+  @override
+  late final GeneratedColumn<String> remoteId = GeneratedColumn<String>(
+    'remote_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _cageIdMeta = const VerificationMeta('cageId');
   @override
@@ -3735,6 +3893,7 @@ class $CageMaintenancesTable extends CageMaintenances
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    remoteId,
     cageId,
     maintenanceDate,
     waterChanged,
@@ -3758,6 +3917,12 @@ class $CageMaintenancesTable extends CageMaintenances
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('remote_id')) {
+      context.handle(
+        _remoteIdMeta,
+        remoteId.isAcceptableOrUnknown(data['remote_id']!, _remoteIdMeta),
+      );
     }
     if (data.containsKey('cage_id')) {
       context.handle(
@@ -3836,6 +4001,10 @@ class $CageMaintenancesTable extends CageMaintenances
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      remoteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_id'],
+      ),
       cageId: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}cage_id'],
@@ -3879,6 +4048,7 @@ class $CageMaintenancesTable extends CageMaintenances
 
 class CageMaintenance extends DataClass implements Insertable<CageMaintenance> {
   final int id;
+  final String? remoteId;
   final String cageId;
   final DateTime maintenanceDate;
   final bool waterChanged;
@@ -3889,6 +4059,7 @@ class CageMaintenance extends DataClass implements Insertable<CageMaintenance> {
   final DateTime updatedAt;
   const CageMaintenance({
     required this.id,
+    this.remoteId,
     required this.cageId,
     required this.maintenanceDate,
     required this.waterChanged,
@@ -3902,6 +4073,9 @@ class CageMaintenance extends DataClass implements Insertable<CageMaintenance> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    if (!nullToAbsent || remoteId != null) {
+      map['remote_id'] = Variable<String>(remoteId);
+    }
     map['cage_id'] = Variable<String>(cageId);
     map['maintenance_date'] = Variable<DateTime>(maintenanceDate);
     map['water_changed'] = Variable<bool>(waterChanged);
@@ -3918,6 +4092,9 @@ class CageMaintenance extends DataClass implements Insertable<CageMaintenance> {
   CageMaintenancesCompanion toCompanion(bool nullToAbsent) {
     return CageMaintenancesCompanion(
       id: Value(id),
+      remoteId: remoteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteId),
       cageId: Value(cageId),
       maintenanceDate: Value(maintenanceDate),
       waterChanged: Value(waterChanged),
@@ -3938,6 +4115,7 @@ class CageMaintenance extends DataClass implements Insertable<CageMaintenance> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return CageMaintenance(
       id: serializer.fromJson<int>(json['id']),
+      remoteId: serializer.fromJson<String?>(json['remoteId']),
       cageId: serializer.fromJson<String>(json['cageId']),
       maintenanceDate: serializer.fromJson<DateTime>(json['maintenanceDate']),
       waterChanged: serializer.fromJson<bool>(json['waterChanged']),
@@ -3953,6 +4131,7 @@ class CageMaintenance extends DataClass implements Insertable<CageMaintenance> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'remoteId': serializer.toJson<String?>(remoteId),
       'cageId': serializer.toJson<String>(cageId),
       'maintenanceDate': serializer.toJson<DateTime>(maintenanceDate),
       'waterChanged': serializer.toJson<bool>(waterChanged),
@@ -3966,6 +4145,7 @@ class CageMaintenance extends DataClass implements Insertable<CageMaintenance> {
 
   CageMaintenance copyWith({
     int? id,
+    Value<String?> remoteId = const Value.absent(),
     String? cageId,
     DateTime? maintenanceDate,
     bool? waterChanged,
@@ -3976,6 +4156,7 @@ class CageMaintenance extends DataClass implements Insertable<CageMaintenance> {
     DateTime? updatedAt,
   }) => CageMaintenance(
     id: id ?? this.id,
+    remoteId: remoteId.present ? remoteId.value : this.remoteId,
     cageId: cageId ?? this.cageId,
     maintenanceDate: maintenanceDate ?? this.maintenanceDate,
     waterChanged: waterChanged ?? this.waterChanged,
@@ -3988,6 +4169,7 @@ class CageMaintenance extends DataClass implements Insertable<CageMaintenance> {
   CageMaintenance copyWithCompanion(CageMaintenancesCompanion data) {
     return CageMaintenance(
       id: data.id.present ? data.id.value : this.id,
+      remoteId: data.remoteId.present ? data.remoteId.value : this.remoteId,
       cageId: data.cageId.present ? data.cageId.value : this.cageId,
       maintenanceDate: data.maintenanceDate.present
           ? data.maintenanceDate.value
@@ -4011,6 +4193,7 @@ class CageMaintenance extends DataClass implements Insertable<CageMaintenance> {
   String toString() {
     return (StringBuffer('CageMaintenance(')
           ..write('id: $id, ')
+          ..write('remoteId: $remoteId, ')
           ..write('cageId: $cageId, ')
           ..write('maintenanceDate: $maintenanceDate, ')
           ..write('waterChanged: $waterChanged, ')
@@ -4026,6 +4209,7 @@ class CageMaintenance extends DataClass implements Insertable<CageMaintenance> {
   @override
   int get hashCode => Object.hash(
     id,
+    remoteId,
     cageId,
     maintenanceDate,
     waterChanged,
@@ -4040,6 +4224,7 @@ class CageMaintenance extends DataClass implements Insertable<CageMaintenance> {
       identical(this, other) ||
       (other is CageMaintenance &&
           other.id == this.id &&
+          other.remoteId == this.remoteId &&
           other.cageId == this.cageId &&
           other.maintenanceDate == this.maintenanceDate &&
           other.waterChanged == this.waterChanged &&
@@ -4052,6 +4237,7 @@ class CageMaintenance extends DataClass implements Insertable<CageMaintenance> {
 
 class CageMaintenancesCompanion extends UpdateCompanion<CageMaintenance> {
   final Value<int> id;
+  final Value<String?> remoteId;
   final Value<String> cageId;
   final Value<DateTime> maintenanceDate;
   final Value<bool> waterChanged;
@@ -4062,6 +4248,7 @@ class CageMaintenancesCompanion extends UpdateCompanion<CageMaintenance> {
   final Value<DateTime> updatedAt;
   const CageMaintenancesCompanion({
     this.id = const Value.absent(),
+    this.remoteId = const Value.absent(),
     this.cageId = const Value.absent(),
     this.maintenanceDate = const Value.absent(),
     this.waterChanged = const Value.absent(),
@@ -4073,6 +4260,7 @@ class CageMaintenancesCompanion extends UpdateCompanion<CageMaintenance> {
   });
   CageMaintenancesCompanion.insert({
     this.id = const Value.absent(),
+    this.remoteId = const Value.absent(),
     required String cageId,
     required DateTime maintenanceDate,
     this.waterChanged = const Value.absent(),
@@ -4085,6 +4273,7 @@ class CageMaintenancesCompanion extends UpdateCompanion<CageMaintenance> {
        maintenanceDate = Value(maintenanceDate);
   static Insertable<CageMaintenance> custom({
     Expression<int>? id,
+    Expression<String>? remoteId,
     Expression<String>? cageId,
     Expression<DateTime>? maintenanceDate,
     Expression<bool>? waterChanged,
@@ -4096,6 +4285,7 @@ class CageMaintenancesCompanion extends UpdateCompanion<CageMaintenance> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (remoteId != null) 'remote_id': remoteId,
       if (cageId != null) 'cage_id': cageId,
       if (maintenanceDate != null) 'maintenance_date': maintenanceDate,
       if (waterChanged != null) 'water_changed': waterChanged,
@@ -4109,6 +4299,7 @@ class CageMaintenancesCompanion extends UpdateCompanion<CageMaintenance> {
 
   CageMaintenancesCompanion copyWith({
     Value<int>? id,
+    Value<String?>? remoteId,
     Value<String>? cageId,
     Value<DateTime>? maintenanceDate,
     Value<bool>? waterChanged,
@@ -4120,6 +4311,7 @@ class CageMaintenancesCompanion extends UpdateCompanion<CageMaintenance> {
   }) {
     return CageMaintenancesCompanion(
       id: id ?? this.id,
+      remoteId: remoteId ?? this.remoteId,
       cageId: cageId ?? this.cageId,
       maintenanceDate: maintenanceDate ?? this.maintenanceDate,
       waterChanged: waterChanged ?? this.waterChanged,
@@ -4136,6 +4328,9 @@ class CageMaintenancesCompanion extends UpdateCompanion<CageMaintenance> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (remoteId.present) {
+      map['remote_id'] = Variable<String>(remoteId.value);
     }
     if (cageId.present) {
       map['cage_id'] = Variable<String>(cageId.value);
@@ -4168,6 +4363,7 @@ class CageMaintenancesCompanion extends UpdateCompanion<CageMaintenance> {
   String toString() {
     return (StringBuffer('CageMaintenancesCompanion(')
           ..write('id: $id, ')
+          ..write('remoteId: $remoteId, ')
           ..write('cageId: $cageId, ')
           ..write('maintenanceDate: $maintenanceDate, ')
           ..write('waterChanged: $waterChanged, ')
@@ -5723,6 +5919,7 @@ typedef $$BreedingCagesTableProcessedTableManager =
 typedef $$FeedingsTableCreateCompanionBuilder =
     FeedingsCompanion Function({
       Value<int> id,
+      Value<String?> remoteId,
       required String batchId,
       required double wasteQuantityKg,
       required String wasteType,
@@ -5735,6 +5932,7 @@ typedef $$FeedingsTableCreateCompanionBuilder =
 typedef $$FeedingsTableUpdateCompanionBuilder =
     FeedingsCompanion Function({
       Value<int> id,
+      Value<String?> remoteId,
       Value<String> batchId,
       Value<double> wasteQuantityKg,
       Value<String> wasteType,
@@ -5756,6 +5954,11 @@ class $$FeedingsTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remoteId => $composableBuilder(
+    column: $table.remoteId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5814,6 +6017,11 @@ class $$FeedingsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get batchId => $composableBuilder(
     column: $table.batchId,
     builder: (column) => ColumnOrderings(column),
@@ -5866,6 +6074,9 @@ class $$FeedingsTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get remoteId =>
+      $composableBuilder(column: $table.remoteId, builder: (column) => column);
 
   GeneratedColumn<String> get batchId =>
       $composableBuilder(column: $table.batchId, builder: (column) => column);
@@ -5923,6 +6134,7 @@ class $$FeedingsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> remoteId = const Value.absent(),
                 Value<String> batchId = const Value.absent(),
                 Value<double> wasteQuantityKg = const Value.absent(),
                 Value<String> wasteType = const Value.absent(),
@@ -5933,6 +6145,7 @@ class $$FeedingsTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => FeedingsCompanion(
                 id: id,
+                remoteId: remoteId,
                 batchId: batchId,
                 wasteQuantityKg: wasteQuantityKg,
                 wasteType: wasteType,
@@ -5945,6 +6158,7 @@ class $$FeedingsTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> remoteId = const Value.absent(),
                 required String batchId,
                 required double wasteQuantityKg,
                 required String wasteType,
@@ -5955,6 +6169,7 @@ class $$FeedingsTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => FeedingsCompanion.insert(
                 id: id,
+                remoteId: remoteId,
                 batchId: batchId,
                 wasteQuantityKg: wasteQuantityKg,
                 wasteType: wasteType,
@@ -5989,6 +6204,7 @@ typedef $$FeedingsTableProcessedTableManager =
 typedef $$HarvestsTableCreateCompanionBuilder =
     HarvestsCompanion Function({
       Value<int> id,
+      Value<String?> remoteId,
       required String batchId,
       required double wetLarvaeKg,
       Value<double?> frassKg,
@@ -6002,6 +6218,7 @@ typedef $$HarvestsTableCreateCompanionBuilder =
 typedef $$HarvestsTableUpdateCompanionBuilder =
     HarvestsCompanion Function({
       Value<int> id,
+      Value<String?> remoteId,
       Value<String> batchId,
       Value<double> wetLarvaeKg,
       Value<double?> frassKg,
@@ -6024,6 +6241,11 @@ class $$HarvestsTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remoteId => $composableBuilder(
+    column: $table.remoteId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6087,6 +6309,11 @@ class $$HarvestsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get batchId => $composableBuilder(
     column: $table.batchId,
     builder: (column) => ColumnOrderings(column),
@@ -6144,6 +6371,9 @@ class $$HarvestsTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get remoteId =>
+      $composableBuilder(column: $table.remoteId, builder: (column) => column);
 
   GeneratedColumn<String> get batchId =>
       $composableBuilder(column: $table.batchId, builder: (column) => column);
@@ -6206,6 +6436,7 @@ class $$HarvestsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> remoteId = const Value.absent(),
                 Value<String> batchId = const Value.absent(),
                 Value<double> wetLarvaeKg = const Value.absent(),
                 Value<double?> frassKg = const Value.absent(),
@@ -6217,6 +6448,7 @@ class $$HarvestsTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => HarvestsCompanion(
                 id: id,
+                remoteId: remoteId,
                 batchId: batchId,
                 wetLarvaeKg: wetLarvaeKg,
                 frassKg: frassKg,
@@ -6230,6 +6462,7 @@ class $$HarvestsTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> remoteId = const Value.absent(),
                 required String batchId,
                 required double wetLarvaeKg,
                 Value<double?> frassKg = const Value.absent(),
@@ -6241,6 +6474,7 @@ class $$HarvestsTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => HarvestsCompanion.insert(
                 id: id,
+                remoteId: remoteId,
                 batchId: batchId,
                 wetLarvaeKg: wetLarvaeKg,
                 frassKg: frassKg,
@@ -6276,6 +6510,7 @@ typedef $$HarvestsTableProcessedTableManager =
 typedef $$EggCollectionsTableCreateCompanionBuilder =
     EggCollectionsCompanion Function({
       Value<int> id,
+      Value<String?> remoteId,
       required String cageId,
       Value<String> eggWeightGrams,
       Value<String> quality,
@@ -6288,6 +6523,7 @@ typedef $$EggCollectionsTableCreateCompanionBuilder =
 typedef $$EggCollectionsTableUpdateCompanionBuilder =
     EggCollectionsCompanion Function({
       Value<int> id,
+      Value<String?> remoteId,
       Value<String> cageId,
       Value<String> eggWeightGrams,
       Value<String> quality,
@@ -6309,6 +6545,11 @@ class $$EggCollectionsTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remoteId => $composableBuilder(
+    column: $table.remoteId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6367,6 +6608,11 @@ class $$EggCollectionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get cageId => $composableBuilder(
     column: $table.cageId,
     builder: (column) => ColumnOrderings(column),
@@ -6419,6 +6665,9 @@ class $$EggCollectionsTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get remoteId =>
+      $composableBuilder(column: $table.remoteId, builder: (column) => column);
 
   GeneratedColumn<String> get cageId =>
       $composableBuilder(column: $table.cageId, builder: (column) => column);
@@ -6483,6 +6732,7 @@ class $$EggCollectionsTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> remoteId = const Value.absent(),
                 Value<String> cageId = const Value.absent(),
                 Value<String> eggWeightGrams = const Value.absent(),
                 Value<String> quality = const Value.absent(),
@@ -6493,6 +6743,7 @@ class $$EggCollectionsTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => EggCollectionsCompanion(
                 id: id,
+                remoteId: remoteId,
                 cageId: cageId,
                 eggWeightGrams: eggWeightGrams,
                 quality: quality,
@@ -6505,6 +6756,7 @@ class $$EggCollectionsTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> remoteId = const Value.absent(),
                 required String cageId,
                 Value<String> eggWeightGrams = const Value.absent(),
                 Value<String> quality = const Value.absent(),
@@ -6515,6 +6767,7 @@ class $$EggCollectionsTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => EggCollectionsCompanion.insert(
                 id: id,
+                remoteId: remoteId,
                 cageId: cageId,
                 eggWeightGrams: eggWeightGrams,
                 quality: quality,
@@ -6552,6 +6805,7 @@ typedef $$EggCollectionsTableProcessedTableManager =
 typedef $$CageMaintenancesTableCreateCompanionBuilder =
     CageMaintenancesCompanion Function({
       Value<int> id,
+      Value<String?> remoteId,
       required String cageId,
       required DateTime maintenanceDate,
       Value<bool> waterChanged,
@@ -6564,6 +6818,7 @@ typedef $$CageMaintenancesTableCreateCompanionBuilder =
 typedef $$CageMaintenancesTableUpdateCompanionBuilder =
     CageMaintenancesCompanion Function({
       Value<int> id,
+      Value<String?> remoteId,
       Value<String> cageId,
       Value<DateTime> maintenanceDate,
       Value<bool> waterChanged,
@@ -6585,6 +6840,11 @@ class $$CageMaintenancesTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remoteId => $composableBuilder(
+    column: $table.remoteId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -6643,6 +6903,11 @@ class $$CageMaintenancesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get cageId => $composableBuilder(
     column: $table.cageId,
     builder: (column) => ColumnOrderings(column),
@@ -6695,6 +6960,9 @@ class $$CageMaintenancesTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get remoteId =>
+      $composableBuilder(column: $table.remoteId, builder: (column) => column);
 
   GeneratedColumn<String> get cageId =>
       $composableBuilder(column: $table.cageId, builder: (column) => column);
@@ -6767,6 +7035,7 @@ class $$CageMaintenancesTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> remoteId = const Value.absent(),
                 Value<String> cageId = const Value.absent(),
                 Value<DateTime> maintenanceDate = const Value.absent(),
                 Value<bool> waterChanged = const Value.absent(),
@@ -6777,6 +7046,7 @@ class $$CageMaintenancesTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => CageMaintenancesCompanion(
                 id: id,
+                remoteId: remoteId,
                 cageId: cageId,
                 maintenanceDate: maintenanceDate,
                 waterChanged: waterChanged,
@@ -6789,6 +7059,7 @@ class $$CageMaintenancesTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> remoteId = const Value.absent(),
                 required String cageId,
                 required DateTime maintenanceDate,
                 Value<bool> waterChanged = const Value.absent(),
@@ -6799,6 +7070,7 @@ class $$CageMaintenancesTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => CageMaintenancesCompanion.insert(
                 id: id,
+                remoteId: remoteId,
                 cageId: cageId,
                 maintenanceDate: maintenanceDate,
                 waterChanged: waterChanged,

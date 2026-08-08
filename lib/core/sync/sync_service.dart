@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:flyful_farms/core/api/endpoints.dart';
+import 'package:flyful_farms/core/database/app_database.dart';
+import 'package:flyful_farms/core/database/daos/download_dao.dart';
 import 'package:flyful_farms/core/database/daos/sync_dao.dart';
 import 'package:uuid/uuid.dart';
 
@@ -33,6 +35,7 @@ class SyncResult {
 
 class SyncService {
   final SyncDao _syncDao;
+  final DownloadDao _downloadDao;
   final SyncStorage _storage;
   final ApiPost upload;
   final ApiGet fetch;
@@ -40,9 +43,11 @@ class SyncService {
 
   static const _deviceIdKey = 'sync_device_id';
   static const _farmIdKey = 'sync_farm_id';
+  static const _lastDownloadKey = 'sync_last_download';
 
   SyncService(
     this._syncDao,
+    this._downloadDao,
     this._storage, {
     required ApiPost post,
     required ApiGet get,
@@ -147,5 +152,120 @@ class SyncService {
     }
 
     return SyncResult(processed: processed, failed: failed, conflicts: conflictCount);
+  }
+
+  Future<int> syncDownload() async {
+    final since = await _storage.read(_lastDownloadKey) ??
+        DateTime.now().toUtc().subtract(const Duration(days: 1)).toIso8601String();
+
+    final response = await fetch(
+      ApiEndpoints.syncDownload,
+      queryParameters: {'since': since},
+    );
+
+    final data = response['data'] as Map<String, dynamic>? ?? {};
+    final changes = data['changes'] as List? ?? [];
+    final newSince = data['since']?.toString();
+
+    var applied = 0;
+    for (final change in changes) {
+      final item = change as Map<String, dynamic>;
+      final entityType = item['entityType']?.toString();
+      final payload = item['payload'] as Map<String, dynamic>? ?? {};
+      final remoteId = payload['id']?.toString();
+
+      if (remoteId == null || remoteId.isEmpty) continue;
+
+      final handled = switch (entityType) {
+        'feeding' => await _upsertFeeding(remoteId, payload),
+        'harvest' => await _upsertHarvest(remoteId, payload),
+        'egg_collection' => await _upsertEggCollection(remoteId, payload),
+        'cage_maintenance' => await _upsertCageMaintenance(remoteId, payload),
+        _ => false,
+      };
+      if (handled) applied++;
+    }
+
+    if (newSince != null && newSince.isNotEmpty) {
+      await _storage.write(_lastDownloadKey, newSince);
+    }
+
+    return applied;
+  }
+
+  Future<bool> _upsertFeeding(String remoteId, Map<String, dynamic> p) async {
+    final fedAt = DateTime.tryParse(p['occurredAt']?.toString() ?? '') ?? DateTime.now();
+    final weight = double.tryParse(p['wasteQuantityKg']?.toString() ?? '');
+    if (weight == null) return false;
+    await _downloadDao.upsertFeeding(Feeding(
+      id: 0,
+      remoteId: remoteId,
+      batchId: p['batchId']?.toString() ?? '',
+      wasteQuantityKg: weight,
+      wasteType: p['wasteType']?.toString() ?? '',
+      fedAt: fedAt,
+      notes: p['notes']?.toString(),
+      photoUrl: null,
+      createdAt: fedAt,
+      updatedAt: fedAt,
+    ));
+    return true;
+  }
+
+  Future<bool> _upsertHarvest(String remoteId, Map<String, dynamic> p) async {
+    final harvestedAt =
+        DateTime.tryParse(p['harvestDate']?.toString() ?? '') ?? DateTime.now();
+    final wetLarvae = double.tryParse(p['wetLarvaeKg']?.toString() ?? '');
+    if (wetLarvae == null) return false;
+    await _downloadDao.upsertHarvest(Harvest(
+      id: 0,
+      remoteId: remoteId,
+      batchId: p['batchId']?.toString() ?? '',
+      wetLarvaeKg: wetLarvae,
+      frassKg: double.tryParse(p['frassKg']?.toString() ?? ''),
+      pupaKg: double.tryParse(p['pupaKg']?.toString() ?? ''),
+      harvestedAt: harvestedAt,
+      notes: p['notes']?.toString(),
+      photoUrl: p['photoUrl']?.toString(),
+      createdAt: harvestedAt,
+      updatedAt: harvestedAt,
+    ));
+    return true;
+  }
+
+  Future<bool> _upsertEggCollection(String remoteId, Map<String, dynamic> p) async {
+    final collectedAt =
+        DateTime.tryParse(p['collectionDate']?.toString() ?? '') ?? DateTime.now();
+    await _downloadDao.upsertEggCollection(EggCollection(
+      id: 0,
+      remoteId: remoteId,
+      cageId: p['cageId']?.toString() ?? '',
+      eggWeightGrams: p['eggWeightGrams']?.toString() ?? '',
+      quality: p['quality']?.toString() ?? 'good',
+      collectedAt: collectedAt,
+      notes: p['notes']?.toString(),
+      photoUrl: p['photoUrl']?.toString(),
+      createdAt: collectedAt,
+      updatedAt: collectedAt,
+    ));
+    return true;
+  }
+
+  Future<bool> _upsertCageMaintenance(String remoteId, Map<String, dynamic> p) async {
+    final maintenanceDate =
+        DateTime.tryParse(p['date']?.toString() ?? '') ?? DateTime.now();
+    await _downloadDao.upsertCageMaintenance(CageMaintenance(
+      id: 0,
+      remoteId: remoteId,
+      cageId: p['cageId']?.toString() ?? '',
+      maintenanceDate: maintenanceDate,
+      waterChanged: p['waterChanged'] == true,
+      attractantReplaced: p['attractantReplaced'] == true,
+      cleaningDone: p['cleaningDone'] == true,
+      notes: p['notes']?.toString(),
+      createdAt: maintenanceDate,
+      updatedAt: maintenanceDate,
+    ));
+    return true;
   }
 }

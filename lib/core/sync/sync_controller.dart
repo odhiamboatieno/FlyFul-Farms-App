@@ -12,12 +12,14 @@ class SyncController extends ChangeNotifier {
   bool _syncing = false;
   DateTime? _lastSyncedAt;
   bool _syncHadError = false;
+  int _lastDownloaded = 0;
 
   SyncController(this._syncService, this._network);
 
   bool get isSyncing => _syncing;
   DateTime? get lastSyncedAt => _lastSyncedAt;
   bool get hasSyncError => _syncHadError;
+  int get lastDownloaded => _lastDownloaded;
 
   void start() {
     if (_connectivitySub != null) return;
@@ -35,8 +37,16 @@ class SyncController extends ChangeNotifier {
     notifyListeners();
     try {
       final result = await _syncService.syncNow();
+      int downloaded = 0;
+      try {
+        downloaded = await _syncService.syncDownload();
+      } catch (_) {
+        _syncHadError = true;
+      }
       _lastSyncedAt = DateTime.now();
-      _syncHadError = result.failed > 0 || result.conflicts > 0;
+      _syncHadError =
+          _syncHadError || result.failed > 0 || result.conflicts > 0;
+      _lastDownloaded = downloaded;
       return result;
     } catch (e) {
       _syncHadError = true;

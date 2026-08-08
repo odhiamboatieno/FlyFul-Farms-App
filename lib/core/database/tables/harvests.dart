@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 class Harvests extends Table {
   IntColumn get id => integer().autoIncrement()();
+  TextColumn get remoteId => text().named('remote_id').nullable()();
   TextColumn get batchId => text().named('batch_id')();
   RealColumn get wetLarvaeKg => real().named('wet_larvae_kg')();
   RealColumn get frassKg => real().named('frass_kg').nullable()();

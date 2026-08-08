@@ -13,6 +13,7 @@ import 'tables/sync_outbox.dart';
 import 'daos/batch_dao.dart';
 import 'daos/cage_dao.dart';
 import 'daos/sync_dao.dart';
+import 'daos/download_dao.dart';
 
 part 'app_database.g.dart';
 
@@ -22,7 +23,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.inMemory() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -35,12 +36,19 @@ class AppDatabase extends _$AppDatabase {
           if (from < 3) {
             await m.addColumn(breedingCages, breedingCages.remoteId);
           }
+          if (from < 4) {
+            await m.addColumn(feedings, feedings.remoteId);
+            await m.addColumn(harvests, harvests.remoteId);
+            await m.addColumn(eggCollections, eggCollections.remoteId);
+            await m.addColumn(cageMaintenances, cageMaintenances.remoteId);
+          }
         },
       );
 
   late final batchDao = BatchDao(this);
   late final cageDao = CageDao(this);
   late final syncDao = SyncDao(this);
+  late final downloadDao = DownloadDao(this);
 }
 
 LazyDatabase _openConnection() {
