@@ -71,7 +71,7 @@ void main() {
     provider = AuthProvider(service);
   });
 
-  const user = User(id: 1, email: 'a@b.com', firstName: 'Jane');
+  const user = User(id: 'uuid-1', email: 'a@b.com', firstName: 'Jane');
 
   group('login', () {
     test('authenticates and stores user when login succeeds', () async {

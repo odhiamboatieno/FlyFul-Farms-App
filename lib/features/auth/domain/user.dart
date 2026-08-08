@@ -1,5 +1,5 @@
 class User {
-  final int id;
+  final String id;
   final String? email;
   final String? phone;
   final String? firstName;
@@ -43,8 +43,10 @@ class User {
   int get hashCode => Object.hash(id, email, phone, firstName, lastName, role);
 
   factory User.fromJson(Map<String, dynamic> json) {
+    final rawId = json['id'];
+    final id = rawId is int ? rawId.toString() : rawId as String? ?? '';
     return User(
-      id: json['id'] as int,
+      id: id,
       email: json['email'] as String?,
       phone: json['phone'] as String?,
       firstName: json['firstName'] as String? ?? json['first_name'] as String?,
@@ -53,7 +55,7 @@ class User {
       village: json['village'] as String?,
       county: json['county'] as String?,
       avatar: json['avatar'] as String?,
-      isActive: json['is_active'] as bool? ?? json['is_active'] as bool?,
+      isActive: json['is_active'] as bool?,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'] as String)
           : null,

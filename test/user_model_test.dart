@@ -5,7 +5,7 @@ void main() {
   group('User.fromJson', () {
     test('parses snake_case fields', () {
       final user = User.fromJson({
-        'id': 1,
+        'id': 'fc806952-2d11-4b6f-b8a6-ba60619d4099',
         'email': 'a@b.com',
         'phone': '0712345678',
         'first_name': 'Jane',
@@ -19,7 +19,7 @@ void main() {
         'updated_at': '2026-08-01T11:00:00Z',
       });
 
-      expect(user.id, 1);
+      expect(user.id, 'fc806952-2d11-4b6f-b8a6-ba60619d4099');
       expect(user.email, 'a@b.com');
       expect(user.firstName, 'Jane');
       expect(user.lastName, 'Doe');
@@ -28,9 +28,14 @@ void main() {
       expect(user.createdAt, DateTime.utc(2026, 8, 1, 10, 0, 0));
     });
 
+    test('accepts integer ids by converting to string', () {
+      final user = User.fromJson({'id': 42});
+      expect(user.id, '42');
+    });
+
     test('falls back to camelCase names', () {
       final user = User.fromJson({
-        'id': 2,
+        'id': 'uuid-2',
         'firstName': 'John',
         'lastName': 'Smith',
       });
@@ -39,7 +44,7 @@ void main() {
     });
 
     test('handles null created_at', () {
-      final user = User.fromJson({'id': 3});
+      final user = User.fromJson({'id': 'uuid-3'});
       expect(user.createdAt, isNull);
       expect(user.updatedAt, isNull);
       expect(user.isActive, isNull);
@@ -49,7 +54,7 @@ void main() {
   group('User.toJson', () {
     test('round-trips camelCase and snake_case', () {
       final user = User(
-        id: 7,
+        id: 'uuid-7',
         email: 'x@y.com',
         firstName: 'Ali',
         isActive: true,
@@ -57,7 +62,7 @@ void main() {
       );
 
       final json = user.toJson();
-      expect(json['id'], 7);
+      expect(json['id'], 'uuid-7');
       expect(json['firstName'], 'Ali');
       expect(json['is_active'], isTrue);
       expect(json['created_at'], '2026-08-02T00:00:00.000Z');
@@ -66,15 +71,15 @@ void main() {
 
   group('User equality', () {
     test('equal for identical fields', () {
-      final a = User(id: 1, email: 'a@b.com', firstName: 'Jane');
-      final b = User(id: 1, email: 'a@b.com', firstName: 'Jane');
+      final a = User(id: 'uuid-1', email: 'a@b.com', firstName: 'Jane');
+      final b = User(id: 'uuid-1', email: 'a@b.com', firstName: 'Jane');
       expect(a, b);
       expect(a.hashCode, b.hashCode);
     });
 
     test('not equal when id differs', () {
-      const a = User(id: 1);
-      const b = User(id: 2);
+      const a = User(id: 'uuid-1');
+      const b = User(id: 'uuid-2');
       expect(a, isNot(b));
     });
   });
