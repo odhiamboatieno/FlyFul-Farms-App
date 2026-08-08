@@ -7,6 +7,7 @@ import 'package:flyful_farms/features/auth/data/repositories/auth_repository_imp
 import 'package:flyful_farms/features/auth/domain/auth_service.dart';
 import 'package:flyful_farms/features/batches/presentation/providers/batch_provider.dart';
 import 'package:flyful_farms/core/sync/sync_service.dart';
+import 'package:flyful_farms/core/sync/sync_controller.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 final getIt = GetIt.instance;
@@ -39,6 +40,13 @@ Future<void> initDI() async {
       get: (path, {queryParameters}) => getIt<ApiClient>().get(path, queryParameters: queryParameters),
     ),
   );
+
+  getIt.registerLazySingleton<SyncController>(
+    () => SyncController(
+      getIt<SyncService>(),
+      getIt<NetworkInfo>(),
+    ),
+  );
 }
 
 class _SecureSyncStorage implements SyncStorage {
@@ -59,3 +67,4 @@ NetworkInfo get networkInfo => getIt<NetworkInfo>();
 AuthService get authService => getIt<AuthService>();
 FlutterSecureStorage get secureStorage => getIt<FlutterSecureStorage>();
 SyncService get syncService => getIt<SyncService>();
+SyncController get syncController => getIt<SyncController>();
