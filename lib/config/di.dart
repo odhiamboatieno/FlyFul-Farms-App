@@ -6,6 +6,7 @@ import 'package:flyful_farms/features/auth/data/datasources/auth_remote_datasour
 import 'package:flyful_farms/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:flyful_farms/features/auth/domain/auth_service.dart';
 import 'package:flyful_farms/features/batches/presentation/providers/batch_provider.dart';
+import 'package:flyful_farms/features/breeding/presentation/providers/cage_provider.dart';
 import 'package:flyful_farms/core/sync/sync_service.dart';
 import 'package:flyful_farms/core/sync/sync_controller.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -30,6 +31,10 @@ Future<void> initDI() async {
 
   getIt.registerFactory<BatchProvider>(
     () => BatchProvider(getIt<AppDatabase>().batchDao, getIt<AppDatabase>().syncDao),
+  );
+
+  getIt.registerFactory<CageProvider>(
+    () => CageProvider(getIt<AppDatabase>().cageDao, getIt<AppDatabase>().syncDao),
   );
 
   getIt.registerLazySingleton<SyncService>(

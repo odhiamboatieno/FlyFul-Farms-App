@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 class BreedingCages extends Table {
   IntColumn get id => integer().autoIncrement()();
+  TextColumn get remoteId => text().named('remote_id').nullable()();
   TextColumn get cageNumber => text().withDefault(const Constant(''))();
   TextColumn get farmerId => text().withDefault(const Constant(''))();
   TextColumn get status => text().withDefault(const Constant('active'))();

@@ -97,7 +97,8 @@ class SyncService {
         payload = <String, dynamic>{};
       }
 
-      if (op.entityType == 'batch' && farm != null) {
+      if ((op.entityType == 'batch' || op.entityType == 'breeding_cage') &&
+          farm != null) {
         payload['farmId'] = farm;
       }
 

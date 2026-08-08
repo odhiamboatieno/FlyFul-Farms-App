@@ -46,7 +46,8 @@ class AppRouter {
           BatchDetailPage(id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0)),
       GoRoute(path: '/batches/new', builder: (context, state) => const CreateBatchPage()),
       GoRoute(path: '/cages', builder: (context, state) => const CagesPage()),
-      GoRoute(path: '/cages/:id', builder: (context, state) => const CageDetailPage()),
+      GoRoute(path: '/cages/:id', builder: (context, state) =>
+          CageDetailPage(id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0)),
       GoRoute(path: '/eggs', builder: (context, state) => const EggCollectionPage()),
       GoRoute(path: '/egg-quality', builder: (context, state) => const EggQualityPage()),
       GoRoute(path: '/maintenance', builder: (context, state) => const MaintenancePage()),

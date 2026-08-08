@@ -7,6 +7,7 @@ import 'package:flyful_farms/shared/widgets/phone_frame.dart';
 import 'package:provider/provider.dart';
 import 'package:flyful_farms/features/auth/presentation/providers/auth_provider.dart';
 import 'package:flyful_farms/features/batches/presentation/providers/batch_provider.dart';
+import 'package:flyful_farms/features/breeding/presentation/providers/cage_provider.dart';
 import 'package:flyful_farms/config/di.dart';
 import 'package:flyful_farms/features/auth/domain/auth_service.dart';
 
@@ -33,6 +34,9 @@ class _AppState extends State<App> {
         ),
         ChangeNotifierProvider(
           create: (_) => getIt<BatchProvider>()..loadBatches(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => getIt<CageProvider>()..loadCages(),
         ),
       ],
       child: MaterialApp.router(

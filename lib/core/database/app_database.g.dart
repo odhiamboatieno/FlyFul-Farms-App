@@ -1070,6 +1070,17 @@ class $BreedingCagesTable extends BreedingCages
       'PRIMARY KEY AUTOINCREMENT',
     ),
   );
+  static const VerificationMeta _remoteIdMeta = const VerificationMeta(
+    'remoteId',
+  );
+  @override
+  late final GeneratedColumn<String> remoteId = GeneratedColumn<String>(
+    'remote_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _cageNumberMeta = const VerificationMeta(
     'cageNumber',
   );
@@ -1226,6 +1237,7 @@ class $BreedingCagesTable extends BreedingCages
   @override
   List<GeneratedColumn> get $columns => [
     id,
+    remoteId,
     cageNumber,
     farmerId,
     status,
@@ -1254,6 +1266,12 @@ class $BreedingCagesTable extends BreedingCages
     final data = instance.toColumns(true);
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('remote_id')) {
+      context.handle(
+        _remoteIdMeta,
+        remoteId.isAcceptableOrUnknown(data['remote_id']!, _remoteIdMeta),
+      );
     }
     if (data.containsKey('cage_number')) {
       context.handle(
@@ -1358,6 +1376,10 @@ class $BreedingCagesTable extends BreedingCages
         DriftSqlType.int,
         data['${effectivePrefix}id'],
       )!,
+      remoteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}remote_id'],
+      ),
       cageNumber: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}cage_number'],
@@ -1421,6 +1443,7 @@ class $BreedingCagesTable extends BreedingCages
 
 class BreedingCage extends DataClass implements Insertable<BreedingCage> {
   final int id;
+  final String? remoteId;
   final String cageNumber;
   final String farmerId;
   final String status;
@@ -1436,6 +1459,7 @@ class BreedingCage extends DataClass implements Insertable<BreedingCage> {
   final DateTime updatedAt;
   const BreedingCage({
     required this.id,
+    this.remoteId,
     required this.cageNumber,
     required this.farmerId,
     required this.status,
@@ -1454,6 +1478,9 @@ class BreedingCage extends DataClass implements Insertable<BreedingCage> {
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
+    if (!nullToAbsent || remoteId != null) {
+      map['remote_id'] = Variable<String>(remoteId);
+    }
     map['cage_number'] = Variable<String>(cageNumber);
     map['farmer_id'] = Variable<String>(farmerId);
     map['status'] = Variable<String>(status);
@@ -1481,6 +1508,9 @@ class BreedingCage extends DataClass implements Insertable<BreedingCage> {
   BreedingCagesCompanion toCompanion(bool nullToAbsent) {
     return BreedingCagesCompanion(
       id: Value(id),
+      remoteId: remoteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteId),
       cageNumber: Value(cageNumber),
       farmerId: Value(farmerId),
       status: Value(status),
@@ -1512,6 +1542,7 @@ class BreedingCage extends DataClass implements Insertable<BreedingCage> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return BreedingCage(
       id: serializer.fromJson<int>(json['id']),
+      remoteId: serializer.fromJson<String?>(json['remoteId']),
       cageNumber: serializer.fromJson<String>(json['cageNumber']),
       farmerId: serializer.fromJson<String>(json['farmerId']),
       status: serializer.fromJson<String>(json['status']),
@@ -1536,6 +1567,7 @@ class BreedingCage extends DataClass implements Insertable<BreedingCage> {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
+      'remoteId': serializer.toJson<String?>(remoteId),
       'cageNumber': serializer.toJson<String>(cageNumber),
       'farmerId': serializer.toJson<String>(farmerId),
       'status': serializer.toJson<String>(status),
@@ -1554,6 +1586,7 @@ class BreedingCage extends DataClass implements Insertable<BreedingCage> {
 
   BreedingCage copyWith({
     int? id,
+    Value<String?> remoteId = const Value.absent(),
     String? cageNumber,
     String? farmerId,
     String? status,
@@ -1569,6 +1602,7 @@ class BreedingCage extends DataClass implements Insertable<BreedingCage> {
     DateTime? updatedAt,
   }) => BreedingCage(
     id: id ?? this.id,
+    remoteId: remoteId.present ? remoteId.value : this.remoteId,
     cageNumber: cageNumber ?? this.cageNumber,
     farmerId: farmerId ?? this.farmerId,
     status: status ?? this.status,
@@ -1588,6 +1622,7 @@ class BreedingCage extends DataClass implements Insertable<BreedingCage> {
   BreedingCage copyWithCompanion(BreedingCagesCompanion data) {
     return BreedingCage(
       id: data.id.present ? data.id.value : this.id,
+      remoteId: data.remoteId.present ? data.remoteId.value : this.remoteId,
       cageNumber: data.cageNumber.present
           ? data.cageNumber.value
           : this.cageNumber,
@@ -1622,6 +1657,7 @@ class BreedingCage extends DataClass implements Insertable<BreedingCage> {
   String toString() {
     return (StringBuffer('BreedingCage(')
           ..write('id: $id, ')
+          ..write('remoteId: $remoteId, ')
           ..write('cageNumber: $cageNumber, ')
           ..write('farmerId: $farmerId, ')
           ..write('status: $status, ')
@@ -1642,6 +1678,7 @@ class BreedingCage extends DataClass implements Insertable<BreedingCage> {
   @override
   int get hashCode => Object.hash(
     id,
+    remoteId,
     cageNumber,
     farmerId,
     status,
@@ -1661,6 +1698,7 @@ class BreedingCage extends DataClass implements Insertable<BreedingCage> {
       identical(this, other) ||
       (other is BreedingCage &&
           other.id == this.id &&
+          other.remoteId == this.remoteId &&
           other.cageNumber == this.cageNumber &&
           other.farmerId == this.farmerId &&
           other.status == this.status &&
@@ -1678,6 +1716,7 @@ class BreedingCage extends DataClass implements Insertable<BreedingCage> {
 
 class BreedingCagesCompanion extends UpdateCompanion<BreedingCage> {
   final Value<int> id;
+  final Value<String?> remoteId;
   final Value<String> cageNumber;
   final Value<String> farmerId;
   final Value<String> status;
@@ -1693,6 +1732,7 @@ class BreedingCagesCompanion extends UpdateCompanion<BreedingCage> {
   final Value<DateTime> updatedAt;
   const BreedingCagesCompanion({
     this.id = const Value.absent(),
+    this.remoteId = const Value.absent(),
     this.cageNumber = const Value.absent(),
     this.farmerId = const Value.absent(),
     this.status = const Value.absent(),
@@ -1709,6 +1749,7 @@ class BreedingCagesCompanion extends UpdateCompanion<BreedingCage> {
   });
   BreedingCagesCompanion.insert({
     this.id = const Value.absent(),
+    this.remoteId = const Value.absent(),
     this.cageNumber = const Value.absent(),
     this.farmerId = const Value.absent(),
     this.status = const Value.absent(),
@@ -1725,6 +1766,7 @@ class BreedingCagesCompanion extends UpdateCompanion<BreedingCage> {
   });
   static Insertable<BreedingCage> custom({
     Expression<int>? id,
+    Expression<String>? remoteId,
     Expression<String>? cageNumber,
     Expression<String>? farmerId,
     Expression<String>? status,
@@ -1741,6 +1783,7 @@ class BreedingCagesCompanion extends UpdateCompanion<BreedingCage> {
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
+      if (remoteId != null) 'remote_id': remoteId,
       if (cageNumber != null) 'cage_number': cageNumber,
       if (farmerId != null) 'farmer_id': farmerId,
       if (status != null) 'status': status,
@@ -1761,6 +1804,7 @@ class BreedingCagesCompanion extends UpdateCompanion<BreedingCage> {
 
   BreedingCagesCompanion copyWith({
     Value<int>? id,
+    Value<String?>? remoteId,
     Value<String>? cageNumber,
     Value<String>? farmerId,
     Value<String>? status,
@@ -1777,6 +1821,7 @@ class BreedingCagesCompanion extends UpdateCompanion<BreedingCage> {
   }) {
     return BreedingCagesCompanion(
       id: id ?? this.id,
+      remoteId: remoteId ?? this.remoteId,
       cageNumber: cageNumber ?? this.cageNumber,
       farmerId: farmerId ?? this.farmerId,
       status: status ?? this.status,
@@ -1798,6 +1843,9 @@ class BreedingCagesCompanion extends UpdateCompanion<BreedingCage> {
     final map = <String, Expression>{};
     if (id.present) {
       map['id'] = Variable<int>(id.value);
+    }
+    if (remoteId.present) {
+      map['remote_id'] = Variable<String>(remoteId.value);
     }
     if (cageNumber.present) {
       map['cage_number'] = Variable<String>(cageNumber.value);
@@ -1847,6 +1895,7 @@ class BreedingCagesCompanion extends UpdateCompanion<BreedingCage> {
   String toString() {
     return (StringBuffer('BreedingCagesCompanion(')
           ..write('id: $id, ')
+          ..write('remoteId: $remoteId, ')
           ..write('cageNumber: $cageNumber, ')
           ..write('farmerId: $farmerId, ')
           ..write('status: $status, ')
@@ -5276,6 +5325,7 @@ typedef $$BatchesTableProcessedTableManager =
 typedef $$BreedingCagesTableCreateCompanionBuilder =
     BreedingCagesCompanion Function({
       Value<int> id,
+      Value<String?> remoteId,
       Value<String> cageNumber,
       Value<String> farmerId,
       Value<String> status,
@@ -5293,6 +5343,7 @@ typedef $$BreedingCagesTableCreateCompanionBuilder =
 typedef $$BreedingCagesTableUpdateCompanionBuilder =
     BreedingCagesCompanion Function({
       Value<int> id,
+      Value<String?> remoteId,
       Value<String> cageNumber,
       Value<String> farmerId,
       Value<String> status,
@@ -5319,6 +5370,11 @@ class $$BreedingCagesTableFilterComposer
   });
   ColumnFilters<int> get id => $composableBuilder(
     column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get remoteId => $composableBuilder(
+    column: $table.remoteId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -5402,6 +5458,11 @@ class $$BreedingCagesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get remoteId => $composableBuilder(
+    column: $table.remoteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get cageNumber => $composableBuilder(
     column: $table.cageNumber,
     builder: (column) => ColumnOrderings(column),
@@ -5479,6 +5540,9 @@ class $$BreedingCagesTableAnnotationComposer
   });
   GeneratedColumn<int> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get remoteId =>
+      $composableBuilder(column: $table.remoteId, builder: (column) => column);
 
   GeneratedColumn<String> get cageNumber => $composableBuilder(
     column: $table.cageNumber,
@@ -5566,6 +5630,7 @@ class $$BreedingCagesTableTableManager
           updateCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> remoteId = const Value.absent(),
                 Value<String> cageNumber = const Value.absent(),
                 Value<String> farmerId = const Value.absent(),
                 Value<String> status = const Value.absent(),
@@ -5581,6 +5646,7 @@ class $$BreedingCagesTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => BreedingCagesCompanion(
                 id: id,
+                remoteId: remoteId,
                 cageNumber: cageNumber,
                 farmerId: farmerId,
                 status: status,
@@ -5598,6 +5664,7 @@ class $$BreedingCagesTableTableManager
           createCompanionCallback:
               ({
                 Value<int> id = const Value.absent(),
+                Value<String?> remoteId = const Value.absent(),
                 Value<String> cageNumber = const Value.absent(),
                 Value<String> farmerId = const Value.absent(),
                 Value<String> status = const Value.absent(),
@@ -5613,6 +5680,7 @@ class $$BreedingCagesTableTableManager
                 Value<DateTime> updatedAt = const Value.absent(),
               }) => BreedingCagesCompanion.insert(
                 id: id,
+                remoteId: remoteId,
                 cageNumber: cageNumber,
                 farmerId: farmerId,
                 status: status,
