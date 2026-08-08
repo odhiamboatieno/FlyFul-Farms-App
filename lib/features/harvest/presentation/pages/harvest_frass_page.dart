@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
+import 'package:flyful_farms/features/harvest/presentation/providers/harvest_provider.dart';
+import 'package:provider/provider.dart';
 
 class HarvestFrassPage extends StatefulWidget {
   const HarvestFrassPage({super.key});
@@ -17,6 +19,12 @@ class _HarvestFrassPageState extends State<HarvestFrassPage> {
     super.dispose();
   }
 
+  void _next(BuildContext context) {
+    final weight = double.tryParse(_controller.text.trim()) ?? 0;
+    context.read<HarvestProvider>().setFrassKg(weight);
+    Navigator.pushNamed(context, '/harvest-pupa');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,7 +33,7 @@ class _HarvestFrassPageState extends State<HarvestFrassPage> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(17),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            _buildPageHeaderStepper(context, 'Harvest Batch 007', 'Second question', 2),
+            _buildPageHeaderStepper(context, 'Harvest larvae', 'Second question', 2),
             const SizedBox(height: 16),
             _buildActionTitle('Frass weight?', 'Put frass on the scale.'),
             const SizedBox(height: 8),
@@ -42,7 +50,7 @@ class _HarvestFrassPageState extends State<HarvestFrassPage> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => Navigator.pushNamed(context, '/harvest-pupa'),
+              onPressed: () => _next(context),
               child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Icon(Icons.arrow_forward, size: 16),
                 SizedBox(width: 4),

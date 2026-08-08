@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
+import 'package:flyful_farms/features/harvest/presentation/providers/harvest_provider.dart';
+import 'package:provider/provider.dart';
 
 class HarvestPupaPage extends StatefulWidget {
   const HarvestPupaPage({super.key});
@@ -10,11 +12,29 @@ class HarvestPupaPage extends StatefulWidget {
 
 class _HarvestPupaPageState extends State<HarvestPupaPage> {
   final _controller = TextEditingController();
+  bool _saving = false;
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (_saving) return;
+    final pupa = double.tryParse(_controller.text.trim()) ?? 0;
+    context.read<HarvestProvider>().setPupaKg(pupa);
+    setState(() => _saving = true);
+    final ok = await context.read<HarvestProvider>().saveHarvest();
+    if (!mounted) return;
+    setState(() => _saving = false);
+    if (ok) {
+      Navigator.pushNamed(context, '/success');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pick a batch and enter a larvae weight to save.')),
+      );
+    }
   }
 
   @override
@@ -25,7 +45,7 @@ class _HarvestPupaPageState extends State<HarvestPupaPage> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(17),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            _buildPageHeaderStepper(context, 'Harvest Batch 007', 'Last question', 3),
+            _buildPageHeaderStepper(context, 'Harvest larvae', 'Last question', 3),
             const SizedBox(height: 16),
             _buildActionTitle('Pupa weight?', 'Leave empty if there is no pupa.'),
             const SizedBox(height: 8),
@@ -42,12 +62,14 @@ class _HarvestPupaPageState extends State<HarvestPupaPage> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => Navigator.pushNamed(context, '/success'),
-              child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(Icons.check, size: 16),
-                SizedBox(width: 4),
-                Text('Save harvest'),
-              ]),
+              onPressed: _save,
+              child: _saving
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Icon(Icons.check, size: 16),
+                      SizedBox(width: 4),
+                      Text('Save harvest'),
+                    ]),
             ),
           ]),
         ),

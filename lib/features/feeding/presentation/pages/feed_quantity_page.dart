@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
+import 'package:flyful_farms/features/feeding/presentation/providers/feeding_provider.dart';
+import 'package:provider/provider.dart';
 
 class FeedQuantityPage extends StatefulWidget {
   const FeedQuantityPage({super.key});
@@ -9,7 +11,18 @@ class FeedQuantityPage extends StatefulWidget {
 }
 
 class _FeedQuantityPageState extends State<FeedQuantityPage> {
-  final _weightController = TextEditingController(text: '12');
+  final _weightController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _weightController.text =
+        Provider.of<FeedingProvider>(context, listen: false).draftQuantityKg == 0
+            ? '12'
+            : Provider.of<FeedingProvider>(context, listen: false)
+                .draftQuantityKg
+                .toString();
+  }
 
   @override
   void dispose() {
@@ -17,15 +30,28 @@ class _FeedQuantityPageState extends State<FeedQuantityPage> {
     super.dispose();
   }
 
+  void _next(BuildContext context) {
+    final weight = double.tryParse(_weightController.text.trim()) ?? 0;
+    if (weight <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a quantity above 0')),
+      );
+      return;
+    }
+    context.read<FeedingProvider>().setQuantityKg(weight);
+    Navigator.pushNamed(context, '/feed-photo');
+  }
+
   @override
   Widget build(BuildContext context) {
+    final feeding = context.watch<FeedingProvider>();
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(17),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            _buildPageHeaderStepper(context, 'Feed Batch 012', 'Second question'),
+            _buildPageHeaderStepper(context, 'Feed larvae', 'Second question'),
             const SizedBox(height: 16),
             _buildDateEntry(),
             const SizedBox(height: 16),
@@ -44,7 +70,7 @@ class _FeedQuantityPageState extends State<FeedQuantityPage> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => Navigator.pushNamed(context, '/feed-photo'),
+              onPressed: feeding.draftBatchId == null ? null : () => _next(context),
               child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Icon(Icons.arrow_forward, size: 16),
                 SizedBox(width: 4),

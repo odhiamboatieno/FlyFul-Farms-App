@@ -22,16 +22,18 @@ class DownloadDao extends DatabaseAccessor<AppDatabase> {
           .write(feeding);
       return existing.id;
     }
-    return await into(db.feedings).insert(
-      FeedingsCompanion.insert(
-        remoteId: Value(feeding.remoteId),
-        batchId: feeding.batchId,
-        wasteQuantityKg: feeding.wasteQuantityKg,
-        wasteType: feeding.wasteType,
-        fedAt: feeding.fedAt,
-        notes: Value(feeding.notes),
-      ),
-    );
+    return await insertFeeding(FeedingsCompanion.insert(
+      remoteId: Value(feeding.remoteId),
+      batchId: feeding.batchId,
+      wasteQuantityKg: feeding.wasteQuantityKg,
+      wasteType: feeding.wasteType,
+      fedAt: feeding.fedAt,
+      notes: Value(feeding.notes),
+    ));
+  }
+
+  Future<int> insertFeeding(FeedingsCompanion feeding) {
+    return into(db.feedings).insert(feeding);
   }
 
   Future<int> upsertHarvest(Harvest harvest) async {
@@ -43,17 +45,19 @@ class DownloadDao extends DatabaseAccessor<AppDatabase> {
           .write(harvest);
       return existing.id;
     }
-    return await into(db.harvests).insert(
-      HarvestsCompanion.insert(
-        remoteId: Value(harvest.remoteId),
-        batchId: harvest.batchId,
-        wetLarvaeKg: harvest.wetLarvaeKg,
-        frassKg: Value(harvest.frassKg),
-        pupaKg: Value(harvest.pupaKg),
-        harvestedAt: harvest.harvestedAt,
-        notes: Value(harvest.notes),
-      ),
-    );
+    return await insertHarvest(HarvestsCompanion.insert(
+      remoteId: Value(harvest.remoteId),
+      batchId: harvest.batchId,
+      wetLarvaeKg: harvest.wetLarvaeKg,
+      frassKg: Value(harvest.frassKg),
+      pupaKg: Value(harvest.pupaKg),
+      harvestedAt: harvest.harvestedAt,
+      notes: Value(harvest.notes),
+    ));
+  }
+
+  Future<int> insertHarvest(HarvestsCompanion companion) {
+    return into(db.harvests).insert(companion);
   }
 
   Future<int> upsertEggCollection(EggCollection egg) async {

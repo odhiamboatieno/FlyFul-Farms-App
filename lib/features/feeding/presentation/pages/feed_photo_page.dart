@@ -1,11 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
+import 'package:flyful_farms/features/feeding/presentation/providers/feeding_provider.dart';
+import 'package:provider/provider.dart';
 
-class FeedPhotoPage extends StatelessWidget {
+class FeedPhotoPage extends StatefulWidget {
   const FeedPhotoPage({super.key});
 
   @override
+  State<FeedPhotoPage> createState() => _FeedPhotoPageState();
+}
+
+class _FeedPhotoPageState extends State<FeedPhotoPage> {
+  bool _saving = false;
+
+  Future<void> _save() async {
+    if (_saving) return;
+    setState(() => _saving = true);
+    final ok = await context.read<FeedingProvider>().saveFeeding();
+    if (!mounted) return;
+    setState(() => _saving = false);
+    if (ok) {
+      Navigator.pushNamed(context, '/success');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pick a batch, food type, and quantity to save.')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final feeding = context.watch<FeedingProvider>();
+    final canSave = feeding.draftBatchId != null &&
+        feeding.draftWasteType.isNotEmpty &&
+        feeding.draftQuantityKg > 0;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -33,12 +61,14 @@ class FeedPhotoPage extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => Navigator.pushNamed(context, '/success'),
-              child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(Icons.check, size: 16),
-                SizedBox(width: 4),
-                Text('Save feeding'),
-              ]),
+              onPressed: canSave ? _save : null,
+              child: _saving
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Icon(Icons.check, size: 16),
+                      SizedBox(width: 4),
+                      Text('Save feeding'),
+                    ]),
             ),
           ]),
         ),
