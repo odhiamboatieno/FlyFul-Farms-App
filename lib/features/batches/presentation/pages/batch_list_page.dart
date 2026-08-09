@@ -150,6 +150,11 @@ class _BatchListPageState extends State<BatchListPage> {
         ]),
       ),
       IconButton(
+        onPressed: () => Navigator.pushNamed(context, '/batches/new'),
+        tooltip: 'New batch',
+        icon: const Icon(Icons.add, color: AppColors.green, size: 24),
+      ),
+      IconButton(
         onPressed: _buildHeaderSyncIconOnPressed(context),
         tooltip: 'Sync offline changes',
         icon: _buildHeaderSyncIcon(context),

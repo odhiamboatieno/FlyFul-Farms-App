@@ -10,6 +10,7 @@ import 'package:flyful_farms/features/batches/presentation/pages/create_batch_pa
 import 'package:flyful_farms/features/batches/presentation/pages/edit_batch_page.dart';
 import 'package:flyful_farms/features/breeding/presentation/pages/cages_page.dart';
 import 'package:flyful_farms/features/breeding/presentation/pages/cage_detail_page.dart';
+import 'package:flyful_farms/features/breeding/presentation/pages/create_cage_page.dart';
 import 'package:flyful_farms/features/breeding/presentation/pages/edit_cage_page.dart';
 import 'package:flyful_farms/features/breeding/presentation/pages/egg_collection_page.dart';
 import 'package:flyful_farms/features/breeding/presentation/pages/egg_quality_page.dart';
@@ -48,6 +49,7 @@ class AppRouter {
       GoRoute(path: '/batches/:id/edit', builder: (context, state) =>
           EditBatchPage(id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0)),
       GoRoute(path: '/cages', builder: (context, state) => const CagesPage()),
+      GoRoute(path: '/cages/new', builder: (context, state) => const CreateCagePage()),
       GoRoute(path: '/cages/:id', builder: (context, state) =>
           CageDetailPage(id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0)),
       GoRoute(path: '/cages/:id/edit', builder: (context, state) =>
