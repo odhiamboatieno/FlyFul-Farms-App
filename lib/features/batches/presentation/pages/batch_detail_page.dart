@@ -42,7 +42,9 @@ class _BatchDetailPageState extends State<BatchDetailPage> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             _buildPageHeader(context, batch?.batchNumber ?? 'Batch ${widget.id}', batch == null
                 ? 'Batch not found'
-                : '${_wasteLabel(batch.wasteType)} · Day ${batch.dayNumber}'),
+                : '${_wasteLabel(batch.wasteType)} · Day ${batch.dayNumber}', onDelete: batch == null
+                ? null
+                : () => _confirmDelete(context, batch)),
             if (batch != null) ...[
               const SizedBox(height: 16),
               _buildInfoCard(batch),
@@ -157,14 +159,42 @@ class _BatchDetailPageState extends State<BatchDetailPage> {
     );
   }
 
-  Widget _buildPageHeader(BuildContext context, String title, String subtitle) {
+  Future<void> _confirmDelete(BuildContext context, dynamic batch) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete batch?'),
+        content: Text('Delete ${batch.batchNumber}? This syncs to the server on next sync.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: AppColors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      await context.read<BatchProvider>().deleteBatch(widget.id);
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+    }
+  }
+
+  Widget _buildPageHeader(BuildContext context, String title, String subtitle, {VoidCallback? onDelete}) {
     return Row(children: [
       GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
       const SizedBox(width: 8),
-      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        OutfitText(text: title, fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink),
-        Text(subtitle, style: TextStyle(fontSize: 15, height: 1.45, color: AppColors.textSecondary)),
-      ]),
+      Expanded(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          OutfitText(text: title, fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink),
+          Text(subtitle, style: TextStyle(fontSize: 15, height: 1.45, color: AppColors.textSecondary)),
+        ]),
+      ),
+      if (onDelete != null)
+        IconButton(onPressed: onDelete, icon: const Icon(Icons.delete_outline, color: AppColors.red, size: 21)),
     ]);
   }
 

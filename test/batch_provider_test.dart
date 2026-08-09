@@ -65,4 +65,18 @@ void main() {
     await provider.loadBatches();
     expect(provider.batches, hasLength(1));
   });
+
+  test('deleteBatch removes the row and queues a delete op', () async {
+    await provider.createBatch(batchNumber: 'BSF-2026-004', wasteType: 'vegetables', wasteQuantityKg: 8);
+    final id = provider.batches.single.id;
+    final remoteId = provider.batches.single.remoteId!;
+
+    await provider.deleteBatch(id);
+
+    expect(provider.batches, isEmpty);
+    final pending = await db.syncDao.getPendingOperations();
+    final delete = pending.firstWhere((op) => op.operation == 'delete');
+    expect(delete.entityType, 'batch');
+    expect(delete.entityId, remoteId);
+  });
 }

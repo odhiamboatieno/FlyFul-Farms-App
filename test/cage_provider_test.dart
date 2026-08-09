@@ -65,4 +65,18 @@ void main() {
     await provider.loadCages();
     expect(provider.cages, hasLength(1));
   });
+
+  test('deleteCage removes the row and queues a delete op', () async {
+    await provider.createCage(cageNumber: 'Cage E');
+    final id = provider.cages.single.id;
+    final remoteId = provider.cages.single.remoteId!;
+
+    await provider.deleteCage(id);
+
+    expect(provider.cages, isEmpty);
+    final pending = await db.syncDao.getPendingOperations();
+    final delete = pending.firstWhere((op) => op.operation == 'delete');
+    expect(delete.entityType, 'breeding_cage');
+    expect(delete.entityId, remoteId);
+  });
 }

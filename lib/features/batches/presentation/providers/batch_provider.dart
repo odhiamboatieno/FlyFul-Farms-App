@@ -87,6 +87,26 @@ class BatchProvider extends ChangeNotifier {
     await loadBatches();
   }
 
+  Future<void> deleteBatch(int id) async {
+    final batch = batchById(id);
+    if (batch == null) return;
+
+    if (batch.remoteId != null && batch.remoteId!.isNotEmpty) {
+      await _syncDao.insertSyncOperation(
+        SyncOutboxesCompanion.insert(
+          operationId: _uuid.v4(),
+          entityType: 'batch',
+          entityId: drift.Value(batch.remoteId),
+          operation: drift.Value('delete'),
+          payload: drift.Value('{}'),
+        ),
+      );
+    }
+
+    await _batchDao.deleteBatch(id);
+    await loadBatches();
+  }
+
   Map<String, dynamic> _batchToJson(BatchesCompanion b) {
     return {
       'batchNumber': b.batchNumber.value,

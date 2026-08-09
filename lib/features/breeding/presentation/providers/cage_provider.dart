@@ -85,6 +85,26 @@ class CageProvider extends ChangeNotifier {
     await loadCages();
   }
 
+  Future<void> deleteCage(int id) async {
+    final cage = cageById(id);
+    if (cage == null) return;
+
+    if (cage.remoteId != null && cage.remoteId!.isNotEmpty) {
+      await _syncDao.insertSyncOperation(
+        SyncOutboxesCompanion.insert(
+          operationId: _uuid.v4(),
+          entityType: 'breeding_cage',
+          entityId: drift.Value(cage.remoteId),
+          operation: drift.Value('delete'),
+          payload: drift.Value('{}'),
+        ),
+      );
+    }
+
+    await _cageDao.deleteCage(id);
+    await loadCages();
+  }
+
   Map<String, dynamic> _cageToJson(BreedingCagesCompanion c) {
     return {
       'cageNumber': c.cageNumber.value,

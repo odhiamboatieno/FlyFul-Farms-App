@@ -41,7 +41,9 @@ class _CageDetailPageState extends State<CageDetailPage> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             _buildPageHeader(context, cage?.cageNumber ?? 'Cage ${widget.id}', cage == null
                 ? 'Cage not found'
-                : '${_statusLabel(cage.status)} · Day ${cage.ageDays}'),
+                : '${_statusLabel(cage.status)} · Day ${cage.ageDays}', onDelete: cage == null
+                ? null
+                : () => _confirmDelete(context, cage)),
             if (cage != null) ...[
               const SizedBox(height: 16),
               _buildInfoCard(cage),
@@ -179,14 +181,42 @@ class _CageDetailPageState extends State<CageDetailPage> {
     );
   }
 
-  Widget _buildPageHeader(BuildContext context, String title, String subtitle) {
+  Future<void> _confirmDelete(BuildContext context, dynamic cage) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete cage?'),
+        content: Text('Delete cage ${cage.cageNumber}? This syncs to the server on next sync.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: AppColors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      await context.read<CageProvider>().deleteCage(widget.id);
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+    }
+  }
+
+  Widget _buildPageHeader(BuildContext context, String title, String subtitle, {VoidCallback? onDelete}) {
     return Row(children: [
       GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
       const SizedBox(width: 8),
-      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        OutfitText(text: title, fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink),
-        Text(subtitle, style: TextStyle(fontSize: 15, height: 1.45, color: AppColors.textSecondary)),
-      ]),
+      Expanded(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          OutfitText(text: title, fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink),
+          Text(subtitle, style: TextStyle(fontSize: 15, height: 1.45, color: AppColors.textSecondary)),
+        ]),
+      ),
+      if (onDelete != null)
+        IconButton(onPressed: onDelete, icon: const Icon(Icons.delete_outline, color: AppColors.red, size: 21)),
     ]);
   }
 
