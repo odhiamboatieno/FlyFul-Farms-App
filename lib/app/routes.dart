@@ -7,8 +7,10 @@ import 'package:flyful_farms/features/jobs/presentation/pages/jobs_page.dart';
 import 'package:flyful_farms/features/batches/presentation/pages/batch_list_page.dart';
 import 'package:flyful_farms/features/batches/presentation/pages/batch_detail_page.dart';
 import 'package:flyful_farms/features/batches/presentation/pages/create_batch_page.dart';
+import 'package:flyful_farms/features/batches/presentation/pages/edit_batch_page.dart';
 import 'package:flyful_farms/features/breeding/presentation/pages/cages_page.dart';
 import 'package:flyful_farms/features/breeding/presentation/pages/cage_detail_page.dart';
+import 'package:flyful_farms/features/breeding/presentation/pages/edit_cage_page.dart';
 import 'package:flyful_farms/features/breeding/presentation/pages/egg_collection_page.dart';
 import 'package:flyful_farms/features/breeding/presentation/pages/egg_quality_page.dart';
 import 'package:flyful_farms/features/breeding/presentation/pages/maintenance_page.dart';
@@ -43,9 +45,13 @@ class AppRouter {
       GoRoute(path: '/batches/:id', builder: (context, state) =>
           BatchDetailPage(id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0)),
       GoRoute(path: '/batches/new', builder: (context, state) => const CreateBatchPage()),
+      GoRoute(path: '/batches/:id/edit', builder: (context, state) =>
+          EditBatchPage(id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0)),
       GoRoute(path: '/cages', builder: (context, state) => const CagesPage()),
       GoRoute(path: '/cages/:id', builder: (context, state) =>
           CageDetailPage(id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0)),
+      GoRoute(path: '/cages/:id/edit', builder: (context, state) =>
+          EditCagePage(id: int.tryParse(state.pathParameters['id'] ?? '') ?? 0)),
       GoRoute(path: '/eggs', builder: (context, state) => const EggCollectionPage()),
       GoRoute(path: '/egg-quality', builder: (context, state) => const EggQualityPage()),
       GoRoute(path: '/maintenance', builder: (context, state) => const MaintenancePage()),

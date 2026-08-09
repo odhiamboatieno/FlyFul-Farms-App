@@ -85,6 +85,53 @@ class CageProvider extends ChangeNotifier {
     await loadCages();
   }
 
+  Future<void> updateCage(
+    int id, {
+    String? cageNumber,
+    String? status,
+    int? ageDays,
+    double? pupaLoadedKg,
+    String? pupaSource,
+    bool? attractantInstalled,
+    bool? waterAdded,
+    String? notes,
+  }) async {
+    final cage = cageById(id);
+    if (cage == null) return;
+
+    final now = DateTime.now();
+    final companion = BreedingCagesCompanion(
+      id: drift.Value(cage.id),
+      cageNumber: drift.Value(cageNumber ?? cage.cageNumber),
+      status: drift.Value(status ?? cage.status),
+      ageDays: drift.Value(ageDays ?? cage.ageDays),
+      pupaLoadedKg: drift.Value(pupaLoadedKg ?? cage.pupaLoadedKg),
+      pupaSource: drift.Value(pupaSource ?? cage.pupaSource),
+      attractantInstalled: drift.Value(attractantInstalled ?? cage.attractantInstalled),
+      waterAdded: drift.Value(waterAdded ?? cage.waterAdded),
+      notes: drift.Value(notes),
+      updatedAt: drift.Value(now),
+    );
+
+    await _cageDao.updateCage(companion);
+
+    if (cage.remoteId != null && cage.remoteId!.isNotEmpty) {
+      await _syncDao.insertSyncOperation(
+        SyncOutboxesCompanion.insert(
+          operationId: _uuid.v4(),
+          entityType: 'breeding_cage',
+          entityId: drift.Value(cage.remoteId!),
+          operation: drift.Value('update'),
+          payload: drift.Value(
+            jsonEncode(_cageToJson(companion)),
+          ),
+        ),
+      );
+    }
+
+    await loadCages();
+  }
+
   Future<void> deleteCage(int id) async {
     final cage = cageById(id);
     if (cage == null) return;

@@ -44,7 +44,9 @@ class _BatchDetailPageState extends State<BatchDetailPage> {
                 ? 'Batch not found'
                 : '${_wasteLabel(batch.wasteType)} · Day ${batch.dayNumber}', onDelete: batch == null
                 ? null
-                : () => _confirmDelete(context, batch)),
+                : () => _confirmDelete(context, batch), onEdit: batch == null
+                ? null
+                : () => Navigator.pushNamed(context, '/batches/${widget.id}/edit')),
             if (batch != null) ...[
               const SizedBox(height: 16),
               _buildInfoCard(batch),
@@ -183,7 +185,7 @@ class _BatchDetailPageState extends State<BatchDetailPage> {
     }
   }
 
-  Widget _buildPageHeader(BuildContext context, String title, String subtitle, {VoidCallback? onDelete}) {
+  Widget _buildPageHeader(BuildContext context, String title, String subtitle, {VoidCallback? onDelete, VoidCallback? onEdit}) {
     return Row(children: [
       GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
       const SizedBox(width: 8),
@@ -193,6 +195,8 @@ class _BatchDetailPageState extends State<BatchDetailPage> {
           Text(subtitle, style: TextStyle(fontSize: 15, height: 1.45, color: AppColors.textSecondary)),
         ]),
       ),
+      if (onEdit != null)
+        IconButton(onPressed: onEdit, icon: const Icon(Icons.edit_outlined, color: AppColors.green, size: 20)),
       if (onDelete != null)
         IconButton(onPressed: onDelete, icon: const Icon(Icons.delete_outline, color: AppColors.red, size: 21)),
     ]);

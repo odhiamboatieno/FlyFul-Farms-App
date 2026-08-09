@@ -79,4 +79,36 @@ void main() {
     expect(delete.entityType, 'breeding_cage');
     expect(delete.entityId, remoteId);
   });
+
+  test('updateCage persists changes and queues an update op', () async {
+    await provider.createCage(cageNumber: 'Cage F', pupaLoadedKg: 2);
+    final id = provider.cages.single.id;
+    final remoteId = provider.cages.single.remoteId!;
+
+    await provider.updateCage(
+      id,
+      cageNumber: 'Cage F-Up',
+      waterAdded: true,
+      status: 'retired',
+    );
+
+    final c = provider.cageById(id)!;
+    expect(c.cageNumber, 'Cage F-Up');
+    expect(c.waterAdded, isTrue);
+    expect(c.status, 'retired');
+
+    final pending = await db.syncDao.getPendingOperations();
+    final update = pending.firstWhere((op) => op.operation == 'update');
+    expect(update.entityType, 'breeding_cage');
+    expect(update.entityId, remoteId);
+    expect(update.payload, contains('retired'));
+  });
+
+  test('updateCage does nothing for unknown id', () async {
+    await provider.createCage(cageNumber: 'Cage G');
+
+    await provider.updateCage(999999, cageNumber: 'nope');
+
+    expect(provider.cages.single.cageNumber, 'Cage G');
+  });
 }

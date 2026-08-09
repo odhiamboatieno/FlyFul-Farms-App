@@ -79,4 +79,36 @@ void main() {
     expect(delete.entityType, 'batch');
     expect(delete.entityId, remoteId);
   });
+
+  test('updateBatch persists changes and queues an update op', () async {
+    await provider.createBatch(batchNumber: 'BSF-2026-005', wasteType: 'vegetables', wasteQuantityKg: 8);
+    final id = provider.batches.single.id;
+    final remoteId = provider.batches.single.remoteId!;
+
+    await provider.updateBatch(
+      id,
+      batchNumber: 'BSF-2026-005-EDITED',
+      wasteQuantityKg: 10,
+      status: 'completed',
+    );
+
+    final b = provider.batchById(id)!;
+    expect(b.batchNumber, 'BSF-2026-005-EDITED');
+    expect(b.wasteQuantityKg, 10);
+    expect(b.status, 'completed');
+
+    final pending = await db.syncDao.getPendingOperations();
+    final update = pending.firstWhere((op) => op.operation == 'update');
+    expect(update.entityType, 'batch');
+    expect(update.entityId, remoteId);
+    expect(update.payload, contains('completed'));
+  });
+
+  test('updateBatch does nothing for unknown id', () async {
+    await provider.createBatch(batchNumber: 'BSF-2026-006', wasteType: 'market_waste', wasteQuantityKg: 4);
+
+    await provider.updateBatch(999999, batchNumber: 'nope');
+
+    expect(provider.batches.single.batchNumber, 'BSF-2026-006');
+  });
 }

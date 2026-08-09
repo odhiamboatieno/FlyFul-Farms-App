@@ -24,7 +24,7 @@ class BatchDao extends DatabaseAccessor<AppDatabase> {
   }
 
   Future<bool> updateBatch(BatchesCompanion batch) async {
-    return await (update(db.batches)..where((t) => t.id.equals(batch.id.value))).replace(batch);
+    return await (update(db.batches)).replace(batch);
   }
 
   Future<int> deleteBatch(int id) async {

@@ -24,7 +24,7 @@ class CageDao extends DatabaseAccessor<AppDatabase> {
   }
 
   Future<bool> updateCage(BreedingCagesCompanion cage) async {
-    return await (update(db.breedingCages)..where((t) => t.id.equals(cage.id.value))).replace(cage);
+    return await (update(db.breedingCages)).replace(cage);
   }
 
   Future<int> deleteCage(int id) async {

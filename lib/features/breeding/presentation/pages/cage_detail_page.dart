@@ -43,7 +43,9 @@ class _CageDetailPageState extends State<CageDetailPage> {
                 ? 'Cage not found'
                 : '${_statusLabel(cage.status)} · Day ${cage.ageDays}', onDelete: cage == null
                 ? null
-                : () => _confirmDelete(context, cage)),
+                : () => _confirmDelete(context, cage), onEdit: cage == null
+                ? null
+                : () => Navigator.pushNamed(context, '/cages/${widget.id}/edit')),
             if (cage != null) ...[
               const SizedBox(height: 16),
               _buildInfoCard(cage),
@@ -205,7 +207,7 @@ class _CageDetailPageState extends State<CageDetailPage> {
     }
   }
 
-  Widget _buildPageHeader(BuildContext context, String title, String subtitle, {VoidCallback? onDelete}) {
+  Widget _buildPageHeader(BuildContext context, String title, String subtitle, {VoidCallback? onDelete, VoidCallback? onEdit}) {
     return Row(children: [
       GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
       const SizedBox(width: 8),
@@ -215,6 +217,8 @@ class _CageDetailPageState extends State<CageDetailPage> {
           Text(subtitle, style: TextStyle(fontSize: 15, height: 1.45, color: AppColors.textSecondary)),
         ]),
       ),
+      if (onEdit != null)
+        IconButton(onPressed: onEdit, icon: const Icon(Icons.edit_outlined, color: AppColors.green, size: 20)),
       if (onDelete != null)
         IconButton(onPressed: onDelete, icon: const Icon(Icons.delete_outline, color: AppColors.red, size: 21)),
     ]);

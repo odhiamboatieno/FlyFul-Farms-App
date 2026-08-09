@@ -87,6 +87,53 @@ class BatchProvider extends ChangeNotifier {
     await loadBatches();
   }
 
+  Future<void> updateBatch(
+    int id, {
+    String? batchNumber,
+    String? wasteType,
+    double? wasteQuantityKg,
+    int? neonatesAdded,
+    String? status,
+    String? notes,
+  }) async {
+    final batch = batchById(id);
+    if (batch == null) return;
+
+    final now = DateTime.now();
+    final companion = BatchesCompanion(
+      id: drift.Value(batch.id),
+      batchNumber: drift.Value(batchNumber ?? batch.batchNumber),
+      wasteType: drift.Value(wasteType ?? batch.wasteType),
+      wasteQuantityKg: drift.Value(wasteQuantityKg ?? batch.wasteQuantityKg),
+      neonatesAdded: drift.Value(neonatesAdded ?? batch.neonatesAdded),
+      status: drift.Value(status ?? batch.status),
+      dayNumber: drift.Value(batch.dayNumber),
+      startDate: drift.Value(batch.startDate),
+      expectedHarvestDate: drift.Value(batch.expectedHarvestDate),
+      farmerName: drift.Value(batch.farmerName),
+      notes: drift.Value(notes),
+      updatedAt: drift.Value(now),
+    );
+
+    await _batchDao.updateBatch(companion);
+
+    if (batch.remoteId != null && batch.remoteId!.isNotEmpty) {
+      await _syncDao.insertSyncOperation(
+        SyncOutboxesCompanion.insert(
+          operationId: _uuid.v4(),
+          entityType: 'batch',
+          entityId: drift.Value(batch.remoteId!),
+          operation: drift.Value('update'),
+          payload: drift.Value(
+            jsonEncode(_batchToJson(companion)),
+          ),
+        ),
+      );
+    }
+
+    await loadBatches();
+  }
+
   Future<void> deleteBatch(int id) async {
     final batch = batchById(id);
     if (batch == null) return;
