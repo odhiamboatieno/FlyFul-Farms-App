@@ -11,6 +11,7 @@ import 'package:flyful_farms/features/breeding/presentation/providers/egg_collec
 import 'package:flyful_farms/features/breeding/presentation/providers/maintenance_provider.dart';
 import 'package:flyful_farms/features/feeding/presentation/providers/feeding_provider.dart';
 import 'package:flyful_farms/features/harvest/presentation/providers/harvest_provider.dart';
+import 'package:flyful_farms/features/profile/presentation/providers/sync_provider.dart';
 import 'package:flyful_farms/core/sync/sync_service.dart';
 import 'package:flyful_farms/core/sync/sync_controller.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -66,6 +67,13 @@ Future<void> initDI() async {
     () => MaintenanceProvider(
       getIt<AppDatabase>().downloadDao,
       getIt<AppDatabase>().syncDao,
+    ),
+  );
+
+  getIt.registerLazySingleton<SyncProvider>(
+    () => SyncProvider(
+      getIt<AppDatabase>().syncDao,
+      getIt<SyncController>(),
     ),
   );
 

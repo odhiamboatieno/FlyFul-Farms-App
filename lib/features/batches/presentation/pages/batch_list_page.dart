@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/shared/widgets/bottom_nav.dart';
 import 'package:flyful_farms/features/batches/presentation/providers/batch_provider.dart';
-import 'package:flyful_farms/config/di.dart';
+import 'package:flyful_farms/features/profile/presentation/providers/sync_provider.dart';
 import 'package:provider/provider.dart';
 
 class BatchListPage extends StatefulWidget {
@@ -15,27 +15,24 @@ class BatchListPage extends StatefulWidget {
 class _BatchListPageState extends State<BatchListPage> {
   final _searchController = TextEditingController();
   int _currentIndex = 1;
-  bool _syncing = false;
 
   Future<void> _syncNow() async {
-    if (_syncing) return;
-    setState(() => _syncing = true);
+    final sync = context.read<SyncProvider>();
+    if (sync.isSyncing) return;
     try {
-      final result = await syncService.syncNow();
-      int downloaded = 0;
-      try {
-        downloaded = await syncService.syncDownload();
-      } catch (_) {}
+      await sync.syncNow();
       if (!mounted) return;
+      final result = sync.lastResult;
+      final downloaded = sync.lastDownloaded;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            result.processed > 0
-                ? 'Synced ${result.processed} upload + $downloaded downloaded'
+            (result?.processed ?? 0) > 0
+                ? 'Synced ${result!.processed} upload + $downloaded downloaded'
                 : downloaded > 0
                     ? 'Downloaded $downloaded change(s)'
-                    : result.failed > 0
-                        ? 'Sync failed for ${result.failed} item(s)'
+                    : (result?.failed ?? 0) > 0
+                        ? 'Sync failed for ${result!.failed} item(s)'
                         : 'Everything is in sync',
           ),
         ),
@@ -45,8 +42,6 @@ class _BatchListPageState extends State<BatchListPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Sync failed: $e')),
       );
-    } finally {
-      if (mounted) setState(() => _syncing = false);
     }
   }
 
@@ -77,6 +72,8 @@ class _BatchListPageState extends State<BatchListPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildPageHeader(context, 'My batches', 'Tap a batch to see its work'),
+              const SizedBox(height: 8),
+              _buildLastSyncedChip(),
               const SizedBox(height: 16),
               _buildSearchField(),
               const SizedBox(height: 22),
@@ -154,17 +151,67 @@ class _BatchListPageState extends State<BatchListPage> {
         ]),
       ),
       IconButton(
-        onPressed: _syncing ? null : _syncNow,
+        onPressed: _buildHeaderSyncIconOnPressed(context),
         tooltip: 'Sync offline changes',
-        icon: _syncing
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.green),
-              )
-            : const Icon(Icons.sync, color: AppColors.green, size: 22),
+        icon: _buildHeaderSyncIcon(context),
       ),
     ]);
+  }
+
+  VoidCallback? _buildHeaderSyncIconOnPressed(BuildContext context) {
+    return context.read<SyncProvider>().isSyncing ? null : _syncNow;
+  }
+
+  Widget _buildHeaderSyncIcon(BuildContext context) {
+    return context.watch<SyncProvider>().isSyncing
+        ? const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.green),
+          )
+        : const Icon(Icons.sync, color: AppColors.green, size: 22);
+  }
+
+  Widget _buildLastSyncedChip() {
+    final sync = context.watch<SyncProvider>();
+    final last = sync.lastSyncedAt;
+    final syncing = sync.isSyncing;
+    final String label;
+    if (syncing) {
+      label = 'Syncing…';
+    } else if (last == null) {
+      label = 'Not synced yet';
+    } else {
+      final now = DateTime.now();
+      final diff = now.difference(last);
+      label = diff.inMinutes < 1
+          ? 'Just synced'
+          : diff.inHours < 1
+              ? 'Synced ${diff.inMinutes} min ago'
+              : 'Synced ${diff.inHours} h ago';
+    }
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: AppColors.greenBg,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: AppColors.orangebg),
+        ),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          syncing
+              ? const SizedBox(
+                  width: 12,
+                  height: 12,
+                  child: CircularProgressIndicator(strokeWidth: 1.6, color: AppColors.green),
+                )
+              : const Icon(Icons.cloud_done, color: AppColors.green, size: 14),
+          const SizedBox(width: 6),
+          Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.green)),
+        ]),
+      ),
+    );
   }
 
   Widget _buildSearchField() {
