@@ -69,16 +69,18 @@ class DownloadDao extends DatabaseAccessor<AppDatabase> {
           .write(egg);
       return existing.id;
     }
-    return await into(db.eggCollections).insert(
-      EggCollectionsCompanion.insert(
-        remoteId: Value(egg.remoteId),
-        cageId: egg.cageId,
-        eggWeightGrams: Value(egg.eggWeightGrams),
-        quality: Value(egg.quality),
-        collectedAt: egg.collectedAt,
-        notes: Value(egg.notes),
-      ),
-    );
+    return await insertEggCollection(EggCollectionsCompanion.insert(
+      remoteId: Value(egg.remoteId),
+      cageId: egg.cageId,
+      eggWeightGrams: Value(egg.eggWeightGrams),
+      quality: Value(egg.quality),
+      collectedAt: egg.collectedAt,
+      notes: Value(egg.notes),
+    ));
+  }
+
+  Future<int> insertEggCollection(EggCollectionsCompanion companion) {
+    return into(db.eggCollections).insert(companion);
   }
 
   Future<int> upsertCageMaintenance(CageMaintenance m) async {
@@ -90,17 +92,19 @@ class DownloadDao extends DatabaseAccessor<AppDatabase> {
           .write(m);
       return existing.id;
     }
-    return await into(db.cageMaintenances).insert(
-      CageMaintenancesCompanion.insert(
-        remoteId: Value(m.remoteId),
-        cageId: m.cageId,
-        maintenanceDate: m.maintenanceDate,
-        waterChanged: Value(m.waterChanged),
-        attractantReplaced: Value(m.attractantReplaced),
-        cleaningDone: Value(m.cleaningDone),
-        notes: Value(m.notes),
-      ),
-    );
+    return await insertCageMaintenance(CageMaintenancesCompanion.insert(
+      remoteId: Value(m.remoteId),
+      cageId: m.cageId,
+      maintenanceDate: m.maintenanceDate,
+      waterChanged: Value(m.waterChanged),
+      attractantReplaced: Value(m.attractantReplaced),
+      cleaningDone: Value(m.cleaningDone),
+      notes: Value(m.notes),
+    ));
+  }
+
+  Future<int> insertCageMaintenance(CageMaintenancesCompanion companion) {
+    return into(db.cageMaintenances).insert(companion);
   }
 
   Future<List<Feeding>> allFeedings() => (select(db.feedings)).get();

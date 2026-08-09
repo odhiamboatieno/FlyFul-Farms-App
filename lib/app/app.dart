@@ -8,6 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:flyful_farms/features/auth/presentation/providers/auth_provider.dart';
 import 'package:flyful_farms/features/batches/presentation/providers/batch_provider.dart';
 import 'package:flyful_farms/features/breeding/presentation/providers/cage_provider.dart';
+import 'package:flyful_farms/features/breeding/presentation/providers/egg_collection_provider.dart';
+import 'package:flyful_farms/features/breeding/presentation/providers/maintenance_provider.dart';
 import 'package:flyful_farms/features/feeding/presentation/providers/feeding_provider.dart';
 import 'package:flyful_farms/features/harvest/presentation/providers/harvest_provider.dart';
 import 'package:flyful_farms/config/di.dart';
@@ -45,6 +47,12 @@ class _AppState extends State<App> {
         ),
         ChangeNotifierProvider(
           create: (_) => getIt<HarvestProvider>(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => getIt<EggCollectionProvider>(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => getIt<MaintenanceProvider>(),
         ),
       ],
       child: MaterialApp.router(

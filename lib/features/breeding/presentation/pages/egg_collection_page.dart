@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
+import 'package:flyful_farms/core/database/app_database.dart';
+import 'package:flyful_farms/features/breeding/presentation/providers/egg_collection_provider.dart';
+import 'package:flyful_farms/features/breeding/presentation/providers/cage_provider.dart';
+import 'package:provider/provider.dart';
 
 class EggCollectionPage extends StatefulWidget {
   const EggCollectionPage({super.key});
@@ -17,15 +21,32 @@ class _EggCollectionPageState extends State<EggCollectionPage> {
     super.dispose();
   }
 
+  void _next(BuildContext context) {
+    final weight = double.tryParse(_weightController.text.trim()) ?? 0;
+    if (weight <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter a weight above 0')),
+      );
+      return;
+    }
+    context.read<EggCollectionProvider>().setEggWeightGrams(_weightController.text.trim());
+    Navigator.pushNamed(context, '/egg-quality');
+  }
+
   @override
   Widget build(BuildContext context) {
+    final egg = context.watch<EggCollectionProvider>();
+    final cages = context.watch<CageProvider>().cages;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(17),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            _buildPageHeader(context, 'Collect eggs', 'Cage A · first question'),
+            _buildPageHeader(context, 'Collect eggs', 'First question'),
+            const SizedBox(height: 16),
+            _buildCagePicker(context, egg, cages),
             const SizedBox(height: 16),
             _buildDateEntry(),
             const SizedBox(height: 16),
@@ -43,7 +64,7 @@ class _EggCollectionPageState extends State<EggCollectionPage> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => Navigator.pushNamed(context, '/egg-quality'),
+              onPressed: egg.draftCageId == null ? null : () => _next(context),
               child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Icon(Icons.arrow_forward, size: 16),
                 SizedBox(width: 4),
@@ -51,6 +72,54 @@ class _EggCollectionPageState extends State<EggCollectionPage> {
               ]),
             ),
           ]),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCagePicker(
+    BuildContext context,
+    EggCollectionProvider egg,
+    List<BreedingCage> cages,
+  ) {
+    if (cages.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(13),
+        decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(5)),
+        child: Row(children: [
+          const Icon(Icons.info_outline, color: AppColors.green, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text('Create a cage first to collect eggs.',
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+          ),
+        ]),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(5)),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: egg.draftCageId,
+          isExpanded: true,
+          hint: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: Text('Select cage', style: TextStyle(color: AppColors.muted)),
+          ),
+          items: cages.map((c) {
+            return DropdownMenuItem(
+              value: c.remoteId,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(c.cageNumber,
+                    style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.ink)),
+              ),
+            );
+          }).toList(),
+          onChanged: (value) {
+            if (value != null) egg.setCageId(value);
+          },
         ),
       ),
     );

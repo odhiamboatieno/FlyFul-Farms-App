@@ -1,12 +1,39 @@
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
+import 'package:flyful_farms/features/breeding/presentation/providers/egg_collection_provider.dart';
+import 'package:provider/provider.dart';
 
-class EggQualityPage extends StatelessWidget {
+class EggQualityPage extends StatefulWidget {
   const EggQualityPage({super.key});
 
   @override
+  State<EggQualityPage> createState() => _EggQualityPageState();
+}
+
+class _EggQualityPageState extends State<EggQualityPage> {
+  bool _saving = false;
+
+  Future<void> _save() async {
+    if (_saving) return;
+    setState(() => _saving = true);
+    final ok = await context.read<EggCollectionProvider>().saveEggCollection();
+    if (!mounted) return;
+    setState(() => _saving = false);
+    if (ok) {
+      Navigator.pushNamed(context, '/success');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pick a cage and enter a weight to save.')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final egg = context.watch<EggCollectionProvider>();
+    final canSave = egg.draftCageId != null && egg.draftEggWeightGrams.isNotEmpty;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -21,19 +48,27 @@ class EggQualityPage extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                _buildChoice(FontAwesomeIcons.star.data, 'Best', isSelected: true, onTap: () {}),
-                _buildChoice(FontAwesomeIcons.thumbsUp.data, 'Good', onTap: () {}),
-                _buildChoice(FontAwesomeIcons.circleExclamation.data, 'Poor', onTap: () {}),
+                _buildChoice(FontAwesomeIcons.star.data, 'best',
+                    isSelected: egg.draftQuality == 'best',
+                    onTap: () => context.read<EggCollectionProvider>().setQuality('best')),
+                _buildChoice(FontAwesomeIcons.thumbsUp.data, 'good',
+                    isSelected: egg.draftQuality == 'good',
+                    onTap: () => context.read<EggCollectionProvider>().setQuality('good')),
+                _buildChoice(FontAwesomeIcons.circleExclamation.data, 'poor',
+                    isSelected: egg.draftQuality == 'poor',
+                    onTap: () => context.read<EggCollectionProvider>().setQuality('poor')),
               ],
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => Navigator.pushNamed(context, '/success'),
-              child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(Icons.check, size: 16),
-                SizedBox(width: 4),
-                Text('Save eggs'),
-              ]),
+              onPressed: canSave ? _save : null,
+              child: _saving
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Icon(Icons.check, size: 16),
+                      SizedBox(width: 4),
+                      Text('Save eggs'),
+                    ]),
             ),
           ]),
         ),
