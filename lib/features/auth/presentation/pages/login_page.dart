@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
+import 'package:flyful_farms/features/auth/presentation/providers/auth_provider.dart';
 import 'package:flyful_farms/features/auth/presentation/widgets/auth_form.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -26,24 +28,18 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 32),
                 AuthForm(
                   isLogin: true,
-                  onLogin: () {
-                    context.go('/dashboard');
+                  onSubmit: (phone, email, password, pin, name) {
+                    return context.read<AuthProvider>().login(
+                      phone: phone,
+                      email: email.isEmpty ? null : email,
+                      password: password.isEmpty ? null : password,
+                      pin: pin.isEmpty ? null : pin,
+                    );
                   },
-                  onRegister: () {
-                    context.go('/register');
-                  },
+                  onSwitchMode: () => context.go('/register'),
                   onForgotPassword: () {
                     context.go('/forgot-password');
                   },
-                ),
-                const SizedBox(height: 16),
-                TextButton(
-                  onPressed: () => context.go('/forgot-password'),
-                  child: const Text('Forgot your password?'),
-                ),
-                TextButton(
-                  onPressed: () => context.go('/register'),
-                  child: const Text("Don't have an account? Register"),
                 ),
               ],
             ),

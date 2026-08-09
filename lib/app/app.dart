@@ -18,7 +18,6 @@ import 'package:flyful_farms/features/reports/presentation/providers/compare_pro
 import 'package:flyful_farms/features/feeding/presentation/providers/feeding_provider.dart';
 import 'package:flyful_farms/features/harvest/presentation/providers/harvest_provider.dart';
 import 'package:flyful_farms/config/di.dart';
-import 'package:flyful_farms/features/auth/domain/auth_service.dart';
 
 class App extends StatefulWidget {
   const App({super.key});
@@ -32,6 +31,9 @@ class _AppState extends State<App> {
   void initState() {
     super.initState();
     syncController.start();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      getIt<AuthProvider>().checkAuthStatus();
+    });
   }
 
   @override
@@ -39,7 +41,7 @@ class _AppState extends State<App> {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => AuthProvider(getIt<AuthService>()),
+          create: (_) => getIt<AuthProvider>(),
         ),
         ChangeNotifierProvider(
           create: (_) => getIt<BatchProvider>()..loadBatches(),
@@ -80,7 +82,7 @@ class _AppState extends State<App> {
         theme: AppTheme.light,
         darkTheme: AppTheme.dark,
         themeMode: ThemeMode.system,
-        routerConfig: AppRouter.router,
+        routerConfig: AppRouter.build(refreshListenable: getIt<AuthProvider>()),
         builder: (context, child) {
           final isDesktop = MediaQuery.of(context).size.width > 461;
           if (isDesktop && child != null) {

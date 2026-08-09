@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
+import 'package:flyful_farms/features/auth/presentation/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
+
+typedef AuthSubmit =
+    Future<bool> Function(String phone, String email, String password, String pin, String name);
 
 class AuthForm extends StatefulWidget {
-  final VoidCallback onLogin;
-  final VoidCallback onRegister;
+  final AuthSubmit onSubmit;
+  final VoidCallback onSwitchMode;
   final VoidCallback onForgotPassword;
   final bool isLogin;
-  final bool showError;
-  final String? errorMessage;
 
   const AuthForm({
     super.key,
-    required this.onLogin,
-    required this.onRegister,
+    required this.onSubmit,
+    required this.onSwitchMode,
     required this.onForgotPassword,
     this.isLogin = true,
-    this.showError = false,
-    this.errorMessage,
   });
 
   @override
@@ -33,6 +34,7 @@ class _AuthFormState extends State<AuthForm> {
 
   bool _obscurePassword = true;
   bool _obscurePin = true;
+  bool _submitting = false;
 
   @override
   void dispose() {
@@ -46,6 +48,8 @@ class _AuthFormState extends State<AuthForm> {
 
   @override
   Widget build(BuildContext context) {
+    final errorMessage = context.watch<AuthProvider>().errorMessage;
+
     return Form(
       key: _formKey,
       child: Column(
@@ -145,32 +149,49 @@ class _AuthFormState extends State<AuthForm> {
               return null;
             },
           ),
-          if (widget.showError && widget.errorMessage != null) ...[
+          if (errorMessage != null) ...[
             const SizedBox(height: 8),
             Text(
-              widget.errorMessage!,
+              errorMessage,
               style: TextStyle(color: AppColors.error),
             ),
           ],
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: widget.isLogin ? _handleLogin : _handleRegister,
-            child: Text(widget.isLogin ? 'LOGIN' : 'REGISTER'),
+            onPressed: _submitting ? null : _handleSubmit,
+            child: _submitting
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  )
+                : Text(widget.isLogin ? 'LOGIN' : 'REGISTER'),
+          ),
+          TextButton(
+            onPressed: widget.isLogin ? () => widget.onSwitchMode() : widget.onSwitchMode,
+            child: Text(widget.isLogin ? "Don't have an account? Register" : 'Already have an account? Login'),
+          ),
+          TextButton(
+            onPressed: widget.onForgotPassword,
+            child: const Text('Forgot your password?'),
           ),
         ],
       ),
     );
   }
 
-  void _handleLogin() {
+  Future<void> _handleSubmit() async {
     if (_formKey.currentState?.validate() ?? false) {
-      widget.onLogin();
-    }
-  }
-
-  void _handleRegister() {
-    if (_formKey.currentState?.validate() ?? false) {
-      widget.onRegister();
+      setState(() => _submitting = true);
+      await widget.onSubmit(
+        _phoneController.text.trim(),
+        _emailController.text.trim(),
+        _passwordController.text,
+        _pinController.text,
+        _nameController.text.trim(),
+      );
+      if (!mounted) return;
+      setState(() => _submitting = false);
     }
   }
 }

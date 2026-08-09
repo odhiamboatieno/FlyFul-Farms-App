@@ -5,6 +5,7 @@ import 'package:flyful_farms/core/network/connectivity.dart';
 import 'package:flyful_farms/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:flyful_farms/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:flyful_farms/features/auth/domain/auth_service.dart';
+import 'package:flyful_farms/features/auth/presentation/providers/auth_provider.dart';
 import 'package:flyful_farms/features/batches/presentation/providers/batch_provider.dart';
 import 'package:flyful_farms/features/breeding/presentation/providers/cage_provider.dart';
 import 'package:flyful_farms/features/breeding/presentation/providers/egg_collection_provider.dart';
@@ -36,6 +37,10 @@ Future<void> initDI() async {
 
   getIt.registerLazySingleton<AuthService>(
     () => AuthRepositoryImpl(getIt<AuthRemoteDataSource>(), getIt<FlutterSecureStorage>()),
+  );
+
+  getIt.registerLazySingleton<AuthProvider>(
+    () => AuthProvider(getIt<AuthService>()),
   );
 
   getIt.registerFactory<BatchProvider>(

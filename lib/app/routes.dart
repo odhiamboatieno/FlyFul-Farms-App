@@ -1,3 +1,7 @@
+import 'package:flutter/foundation.dart';
+import 'package:flyful_farms/features/auth/domain/auth_state.dart';
+import 'package:flyful_farms/features/auth/presentation/providers/auth_provider.dart';
+import 'package:flyful_farms/config/di.dart';
 import 'package:flyful_farms/features/auth/presentation/pages/login_page.dart';
 import 'package:flyful_farms/features/auth/presentation/pages/register_page.dart';
 import 'package:flyful_farms/features/auth/presentation/pages/forgot_password_page.dart';
@@ -33,9 +37,32 @@ import 'package:flyful_farms/features/success/presentation/pages/success_page.da
 import 'package:go_router/go_router.dart';
 
 class AppRouter {
-  static final router = GoRouter(
-    initialLocation: '/today',
-    routes: [
+  static GoRouter? _router;
+
+  static GoRouter build({required Listenable refreshListenable}) {
+    _router = GoRouter(
+      initialLocation: '/today',
+      refreshListenable: refreshListenable,
+      redirect: (context, state) {
+        final status = getIt<AuthProvider>().status;
+        final loc = state.matchedLocation;
+        final isPublicPage = loc.startsWith('/login') ||
+            loc.startsWith('/register') ||
+            loc.startsWith('/forgot-password');
+
+        if (status == AuthStatus.authenticated) {
+          return isPublicPage ? '/today' : null;
+        }
+
+        if (status != AuthStatus.initial &&
+            status != AuthStatus.loading &&
+            !isPublicPage) {
+          return '/login';
+        }
+
+        return null;
+      },
+      routes: [
       GoRoute(path: '/', builder: (context, state) => const TodayPage()),
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
       GoRoute(path: '/register', builder: (context, state) => const RegisterPage()),
@@ -73,6 +100,8 @@ class AppRouter {
       GoRoute(path: '/sync', builder: (context, state) => const SyncPage()),
       GoRoute(path: '/record', builder: (context, state) => const RecordPage()),
       GoRoute(path: '/success', builder: (context, state) => const SuccessPage()),
-    ],
-  );
+      ],
+    );
+    return _router!;
+  }
 }
