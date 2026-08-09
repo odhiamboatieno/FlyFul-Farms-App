@@ -111,4 +111,32 @@ class DownloadDao extends DatabaseAccessor<AppDatabase> {
   Future<List<Harvest>> allHarvests() => (select(db.harvests)).get();
   Future<List<EggCollection>> allEggCollections() => (select(db.eggCollections)).get();
   Future<List<CageMaintenance>> allMaintenances() => (select(db.cageMaintenances)).get();
+
+  Future<List<Feeding>> feedingsForBatch(String batchId) {
+    return (select(db.feedings)
+          ..where((t) => t.batchId.equals(batchId))
+          ..orderBy([(t) => OrderingTerm.desc(t.fedAt)]))
+        .get();
+  }
+
+  Future<List<Harvest>> harvestsForBatch(String batchId) {
+    return (select(db.harvests)
+          ..where((t) => t.batchId.equals(batchId))
+          ..orderBy([(t) => OrderingTerm.desc(t.harvestedAt)]))
+        .get();
+  }
+
+  Future<List<EggCollection>> eggCollectionsForCage(String cageId) {
+    return (select(db.eggCollections)
+          ..where((t) => t.cageId.equals(cageId))
+          ..orderBy([(t) => OrderingTerm.desc(t.collectedAt)]))
+        .get();
+  }
+
+  Future<List<CageMaintenance>> maintenancesForCage(String cageId) {
+    return (select(db.cageMaintenances)
+          ..where((t) => t.cageId.equals(cageId))
+          ..orderBy([(t) => OrderingTerm.desc(t.maintenanceDate)]))
+        .get();
+  }
 }

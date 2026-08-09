@@ -1,16 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/features/breeding/presentation/providers/cage_provider.dart';
+import 'package:flyful_farms/features/records/presentation/providers/record_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
-class CageDetailPage extends StatelessWidget {
+class CageDetailPage extends StatefulWidget {
   final int id;
   const CageDetailPage({super.key, required this.id});
 
   @override
+  State<CageDetailPage> createState() => _CageDetailPageState();
+}
+
+class _CageDetailPageState extends State<CageDetailPage> {
+  String? _loadedCageId;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final cage = context.read<CageProvider>().cageById(widget.id);
+    final remoteId = cage?.remoteId;
+    if (remoteId != null && remoteId != _loadedCageId) {
+      _loadedCageId = remoteId;
+      context.read<RecordProvider>().loadCageRecords(remoteId);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final provider = context.watch<CageProvider>();
-    final cage = provider.cageById(id);
+    final cage = provider.cageById(widget.id);
+    final records = context.watch<RecordProvider>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -18,7 +39,7 @@ class CageDetailPage extends StatelessWidget {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(17),
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            _buildPageHeader(context, cage?.cageNumber ?? 'Cage $id', cage == null
+            _buildPageHeader(context, cage?.cageNumber ?? 'Cage ${widget.id}', cage == null
                 ? 'Cage not found'
                 : '${_statusLabel(cage.status)} · Day ${cage.ageDays}'),
             if (cage != null) ...[
@@ -32,11 +53,90 @@ class CageDetailPage extends StatelessWidget {
               _buildStatCard('Attractant', cage.attractantInstalled ? 'Installed' : 'Pending', Icons.sensors),
               const SizedBox(height: 9),
               _buildStatCard('Water', cage.waterAdded ? 'Added' : 'Needed', Icons.water_drop),
+              const SizedBox(height: 16),
+              _buildSectionHeader('Egg collections'),
+              const SizedBox(height: 10),
+              if (records.loading)
+                const Center(child: Padding(padding: EdgeInsets.all(12), child: CircularProgressIndicator(color: AppColors.green)))
+              else if (records.eggCollections.isEmpty)
+                _buildEmpty('No egg collections yet.')
+              else
+                ...records.eggCollections.map((e) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _buildRecord(
+                        Icons.egg,
+                        '${e.eggWeightGrams.isEmpty ? '0' : e.eggWeightGrams} g',
+                        '${_qualityLabel(e.quality)} · ${DateFormat('MMM d').format(e.collectedAt)}',
+                      ),
+                    )),
+              const SizedBox(height: 14),
+              _buildSectionHeader('Maintenance'),
+              const SizedBox(height: 10),
+              if (records.maintenances.isEmpty)
+                _buildEmpty('No maintenance records yet.')
+              else
+                ...records.maintenances.map((m) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _buildRecord(
+                        Icons.cleaning_services,
+                        _maintenanceLabel(m),
+                        DateFormat('MMM d').format(m.maintenanceDate),
+                      ),
+                    )),
             ],
           ]),
         ),
       ),
     );
+  }
+
+  String _maintenanceLabel(dynamic m) {
+    final parts = <String>[
+      if (m.waterChanged) 'Water',
+      if (m.attractantReplaced) 'Attractant',
+      if (m.cleaningDone) 'Cleaning',
+    ];
+    return parts.isEmpty ? 'Maintenance' : parts.join(' + ');
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Align(alignment: Alignment.centerLeft,
+        child: OutfitText(text: title, fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink));
+  }
+
+  Widget _buildEmpty(String message) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Text(message, style: const TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+    );
+  }
+
+  Widget _buildRecord(IconData icon, String title, String subtitle) {
+    return Container(
+      padding: const EdgeInsets.all(13),
+      decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(5),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, 3))]),
+      child: Row(children: [
+        Container(width: 39, height: 39, decoration: BoxDecoration(color: AppColors.pale, borderRadius: BorderRadius.circular(5)),
+          child: Icon(icon, color: AppColors.green, size: 20)),
+        const SizedBox(width: 8),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.ink)),
+          Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+        ])),
+      ]),
+    );
+  }
+
+  String _qualityLabel(String quality) {
+    switch (quality) {
+      case 'best':
+        return 'Best';
+      case 'poor':
+        return 'Poor';
+      default:
+        return 'Good';
+    }
   }
 
   String _statusLabel(String status) {
