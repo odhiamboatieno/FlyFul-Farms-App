@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/shared/widgets/bottom_nav.dart';
+import 'package:flyful_farms/features/reports/presentation/providers/compare_provider.dart';
+import 'package:provider/provider.dart';
 
 class ReportsPage extends StatelessWidget {
   const ReportsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final compare = context.watch<CompareProvider>();
+    final improved = compare.overallImproved;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -24,8 +29,15 @@ class ReportsPage extends StatelessWidget {
                     child: const Icon(Icons.eco, color: AppColors.green, size: 22)),
                   const SizedBox(width: 12),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    OutfitText(text: 'Your farm is growing', fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.ink),
-                    Text('You harvested more larvae this week.', style: TextStyle(fontSize: 12, color: Color(0xFF54735D))),
+                    OutfitText(text: improved ? 'Your farm is growing' : 'Your farm this week', fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.ink),
+                    Text(
+                      compare.larvaeHarvested.thisWeek == 0 && compare.larvaeHarvested.lastWeek == 0
+                          ? 'Add your first harvest to see growth.'
+                          : improved
+                              ? 'You harvested more larvae this week.'
+                              : 'Slightly less larvae this week.',
+                      style: TextStyle(fontSize: 12, color: Color(0xFF54735D)),
+                    ),
                   ])),
                 ]),
               ]),

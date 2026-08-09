@@ -15,6 +15,7 @@ import 'package:flyful_farms/features/profile/presentation/providers/sync_provid
 import 'package:flyful_farms/features/records/presentation/providers/record_provider.dart';
 import 'package:flyful_farms/features/dashboard/presentation/providers/today_provider.dart';
 import 'package:flyful_farms/features/dashboard/presentation/providers/farm_provider.dart';
+import 'package:flyful_farms/features/reports/presentation/providers/compare_provider.dart';
 import 'package:flyful_farms/core/sync/sync_service.dart';
 import 'package:flyful_farms/core/sync/sync_controller.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -98,6 +99,10 @@ Future<void> initDI() async {
       getIt<AppDatabase>().cageDao,
       getIt<AppDatabase>().downloadDao,
     ),
+  );
+
+  getIt.registerLazySingleton<CompareProvider>(
+    () => CompareProvider(getIt<AppDatabase>().downloadDao),
   );
 
   getIt.registerLazySingleton<SyncService>(

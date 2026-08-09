@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/shared/widgets/bottom_nav.dart';
+import 'package:flyful_farms/features/reports/presentation/providers/compare_provider.dart';
+import 'package:provider/provider.dart';
 
 class ComparePage extends StatelessWidget {
   const ComparePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final compare = context.watch<CompareProvider>();
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -15,7 +19,7 @@ class ComparePage extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             _buildPageHeader(context, 'Farm growth', 'See this week and last week'),
             const SizedBox(height: 16),
-            _buildGrowthHero(),
+            _buildGrowthHero(compare),
             const SizedBox(height: 14),
             Row(children: [
               Expanded(child: _buildPeriodButton('This week', isSelected: true)),
@@ -25,9 +29,9 @@ class ComparePage extends StatelessWidget {
             const SizedBox(height: 10),
             const Text('Tall green bar means more than last week.', style: TextStyle(fontSize: 11, color: Color(0xFF9AA69E))),
             const SizedBox(height: 14),
-            _buildCompareCard(Icons.eco, 'Waste used', 'Food given to larvae', '286', 'KG', 0.86, '244'),
-            _buildCompareCard(Icons.eco, 'Larvae harvested', 'Larvae ready for sale', '101', 'KG', 0.78, '86'),
-            _buildCompareCard(Icons.eco, 'Frass collected', 'Fertilizer from the farm', '76', 'KG', null, null, isFrass: true),
+            _buildCompareCard(Icons.eco, 'Waste used', 'Food given to larvae', compare.wasteUsed),
+            _buildCompareCard(Icons.eco, 'Larvae harvested', 'Larvae ready for sale', compare.larvaeHarvested),
+            _buildCompareCard(Icons.eco, 'Frass collected', 'Fertilizer from the farm', compare.frassCollected, isFrass: true),
           ]),
         ),
       ),
@@ -46,7 +50,8 @@ class ComparePage extends StatelessWidget {
     ]);
   }
 
-  Widget _buildGrowthHero() {
+  Widget _buildGrowthHero(CompareProvider compare) {
+    final improved = compare.overallImproved;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -59,8 +64,20 @@ class ComparePage extends StatelessWidget {
           child: const Icon(Icons.eco, color: Colors.white, size: 22)),
         const SizedBox(width: 12),
         Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const OutfitText(text: 'Your farm is growing', fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.green),
-          Text('You harvested more larvae this week.', style: TextStyle(fontSize: 12, color: Color(0xFF54735D))),
+          OutfitText(
+            text: improved ? 'Your farm is growing' : 'Your farm this week',
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: AppColors.green,
+          ),
+          Text(
+            compare.larvaeHarvested.thisWeek == 0 && compare.larvaeHarvested.lastWeek == 0
+                ? 'Add your first harvest to see growth.'
+                : improved
+                    ? 'You harvested more larvae this week.'
+                    : 'Slightly less larvae this week.',
+            style: TextStyle(fontSize: 12, color: Color(0xFF54735D)),
+          ),
         ])),
       ]),
     );
@@ -79,7 +96,8 @@ class ComparePage extends StatelessWidget {
     );
   }
 
-  Widget _buildCompareCard(IconData icon, String title, String subtitle, String value, String unit, double? thisWeekPercent, String? lastWeek, {bool isFrass = false}) {
+  Widget _buildCompareCard(IconData icon, String title, String subtitle, WeekStat stat, {bool isFrass = false}) {
+    final bothZero = stat.thisWeek == 0 && stat.lastWeek == 0;
     return Container(
       padding: const EdgeInsets.all(13),
       margin: const EdgeInsets.only(bottom: 10),
@@ -97,21 +115,19 @@ class ComparePage extends StatelessWidget {
             OutfitText(text: title, fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.ink),
             Text(subtitle, style: TextStyle(fontSize: 10, color: AppColors.muted)),
           ])),
-          OutfitText(text: '$value $unit', fontSize: 21, fontWeight: FontWeight.w800, color: AppColors.ink),
+          OutfitText(text: stat.formatKg(), fontSize: 21, fontWeight: FontWeight.w800, color: AppColors.ink),
         ]),
         const SizedBox(height: 13),
-        if (thisWeekPercent != null) ...[
-          _buildBarRow('This week', thisWeekPercent, value),
+        if (!bothZero) ...[
+          _buildBarRow('This week', stat.percentThisWeek, stat.formatKg()),
           const SizedBox(height: 6),
-          _buildBarRow('Last week', lastWeek != null ? double.parse(lastWeek) / double.parse(value) : 0.66, lastWeek ?? ''),
-        ],
-        if (isFrass) ...[
+          _buildBarRow('Last week', stat.percentLastWeek, stat.formatLastKg()),
+        ] else
           Container(
             height: 40, width: double.infinity,
             decoration: BoxDecoration(color: const Color(0xFFF8FBF8), borderRadius: BorderRadius.circular(5)),
-            child: const Center(child: Text('No improvement — farm stable this week', style: TextStyle(fontSize: 11, color: Color(0xFF9AA69E)))),
+            child: const Center(child: Text('No records yet this week or last week', style: TextStyle(fontSize: 11, color: Color(0xFF9AA69E)))),
           ),
-        ],
       ]),
     );
   }

@@ -14,6 +14,7 @@ import 'package:flyful_farms/features/profile/presentation/providers/sync_provid
 import 'package:flyful_farms/features/records/presentation/providers/record_provider.dart';
 import 'package:flyful_farms/features/dashboard/presentation/providers/today_provider.dart';
 import 'package:flyful_farms/features/dashboard/presentation/providers/farm_provider.dart';
+import 'package:flyful_farms/features/reports/presentation/providers/compare_provider.dart';
 import 'package:flyful_farms/features/feeding/presentation/providers/feeding_provider.dart';
 import 'package:flyful_farms/features/harvest/presentation/providers/harvest_provider.dart';
 import 'package:flyful_farms/config/di.dart';
@@ -69,6 +70,9 @@ class _AppState extends State<App> {
         ),
         ChangeNotifierProvider(
           create: (_) => getIt<FarmProvider>()..load(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => getIt<CompareProvider>()..load(),
         ),
       ],
       child: MaterialApp.router(
