@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/shared/widgets/bottom_nav.dart';
+import 'package:flyful_farms/features/dashboard/presentation/providers/farm_provider.dart';
+import 'package:provider/provider.dart';
 
 class FarmPage extends StatefulWidget {
   const FarmPage({super.key});
@@ -14,6 +16,8 @@ class _FarmPageState extends State<FarmPage> {
 
   @override
   Widget build(BuildContext context) {
+    final farm = context.watch<FarmProvider>();
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -22,11 +26,11 @@ class _FarmPageState extends State<FarmPage> {
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             _buildPageHeader(context, 'My farm', 'See your farm this week'),
             const SizedBox(height: 16),
-            _buildFarmHero(),
+            _buildFarmHero(farm),
             const SizedBox(height: 20),
             OutfitText(text: 'What you have', fontSize: 19, fontWeight: FontWeight.w800, color: AppColors.ink, letterSpacing: -0.015),
             const SizedBox(height: 10),
-            _buildFarmStats(),
+            _buildFarmStats(farm),
             _buildFarmLinks(),
           ]),
         ),
@@ -46,7 +50,23 @@ class _FarmPageState extends State<FarmPage> {
     ]);
   }
 
-  Widget _buildFarmHero() {
+  Widget _buildFarmHero(FarmProvider farm) {
+    final thisWeek = farm.harvestKgThisWeek;
+    final lastWeek = farm.harvestKgLastWeek;
+
+    final String headline;
+    final String detail;
+    if (thisWeek == 0 && lastWeek == 0) {
+      headline = 'Your farm is starting';
+      detail = 'Add your first harvest to see this week’s numbers.';
+    } else if (thisWeek >= lastWeek) {
+      headline = 'Your farm is growing';
+      detail = 'You harvested $thisWeek kg this week${lastWeek > 0 ? ', up from $lastWeek kg' : ''}.';
+    } else {
+      headline = 'A slower week';
+      detail = 'You harvested $thisWeek kg this week, down from $lastWeek kg.';
+    }
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -56,9 +76,9 @@ class _FarmPageState extends State<FarmPage> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('THIS WEEK', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Color(0xFFD8F0DF), letterSpacing: 0.04)),
         const SizedBox(height: 5),
-        const OutfitText(text: 'Your farm is growing', fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.02),
+        OutfitText(text: headline, fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: -0.02),
         const SizedBox(height: 5),
-        const Text('You harvested more larvae than last week.', style: TextStyle(fontSize: 14, color: Color(0xFFE3F3E7))),
+        Text(detail, style: const TextStyle(fontSize: 14, color: Color(0xFFE3F3E7))),
         const SizedBox(height: 8),
         SizedBox(
           width: double.infinity,
@@ -76,15 +96,23 @@ class _FarmPageState extends State<FarmPage> {
     );
   }
 
-  Widget _buildFarmStats() {
+  String _formatKg(double value) {
+    return value == value.roundToDouble() ? '${value.round()} KG' : '${value.toStringAsFixed(1)} KG';
+  }
+
+  String _formatGrams(double value) {
+    return '${value.round()} G';
+  }
+
+  Widget _buildFarmStats(FarmProvider farm) {
     return Column(children: [
-      _buildStatRow(Icons.eco, '101 KG', 'Larvae'),
+      _buildStatRow(Icons.eco, _formatKg(farm.larvaeKg), 'Larvae'),
       const SizedBox(height: 7),
-      _buildStatRow(Icons.eco, '76 KG', 'Frass', isFrass: true),
+      _buildStatRow(Icons.eco, _formatKg(farm.frassKg), 'Frass', isFrass: true),
       const SizedBox(height: 7),
-      _buildStatRow(Icons.egg, '48 G', 'Eggs', isEgg: true),
+      _buildStatRow(Icons.egg, _formatGrams(farm.eggGrams), 'Eggs', isEgg: true),
       const SizedBox(height: 7),
-      _buildStatRow(Icons.circle, '8.7 KG', 'Pupa'),
+      _buildStatRow(Icons.circle, _formatKg(farm.pupaKg), 'Pupa'),
     ]);
   }
 
