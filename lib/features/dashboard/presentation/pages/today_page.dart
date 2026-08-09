@@ -2,6 +2,10 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/shared/widgets/bottom_nav.dart';
+import 'package:flyful_farms/features/dashboard/presentation/providers/today_provider.dart';
+import 'package:flyful_farms/features/auth/presentation/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 class TodayPage extends StatefulWidget {
   const TodayPage({super.key});
@@ -43,21 +47,25 @@ class _TodayPageState extends State<TodayPage> {
   }
 
   Widget _buildHeader() {
+    final user = context.watch<AuthProvider>().user;
+    final name = user?.firstName ?? user?.lastName;
+    final today = DateFormat('EEEE · MMMM d').format(DateTime.now());
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const OutfitText(
-              text: 'Hello, Amina',
+            OutfitText(
+              text: 'Hello, ${name ?? 'Farmer'}',
               fontSize: 26,
               fontWeight: FontWeight.w800,
               letterSpacing: -0.015,
             ),
             const SizedBox(height: 3),
             Text(
-              'Friday · work for today',
+              today,
               style: TextStyle(
                 fontSize: 14,
                 height: 1.3,
@@ -97,10 +105,10 @@ class _TodayPageState extends State<TodayPage> {
                   ),
                   borderRadius: BorderRadius.circular(50),
                 ),
-                child: const Center(
+                child: Center(
                   child: Text(
-                    'AK',
-                    style: TextStyle(
+                    _initials(name ?? 'F'),
+                    style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
                       fontSize: 16,
@@ -115,7 +123,16 @@ class _TodayPageState extends State<TodayPage> {
     );
   }
 
+  String _initials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    final first = parts.isNotEmpty ? parts.first[0] : '';
+    final last = parts.length > 1 ? parts.last[0] : '';
+    return (first + last).toUpperCase();
+  }
+
   Widget _buildDailyPlan() {
+    final today = context.watch<TodayProvider>();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -133,9 +150,9 @@ class _TodayPageState extends State<TodayPage> {
                 color: AppColors.pale,
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: const Text(
-                '3 jobs',
-                style: TextStyle(
+              child: Text(
+                '${today.jobsToday} ${today.jobsToday == 1 ? 'job' : 'jobs'}',
+                style: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.green,
@@ -145,16 +162,16 @@ class _TodayPageState extends State<TodayPage> {
           ],
         ),
         const SizedBox(height: 12),
-        _buildDoNowButton(),
+        _buildDoNowButton(today),
         const SizedBox(height: 9),
-        _buildLaterJobs(),
+        _buildLaterJobs(today),
         const SizedBox(height: 14),
-        _buildFarmPulse(),
+        _buildFarmPulse(today),
       ],
     );
   }
 
-  Widget _buildDoNowButton() {
+  Widget _buildDoNowButton(TodayProvider today) {
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, '/feed-type'),
       child: Container(
@@ -232,7 +249,7 @@ class _TodayPageState extends State<TodayPage> {
     );
   }
 
-  Widget _buildLaterJobs() {
+  Widget _buildLaterJobs(TodayProvider today) {
     return Column(
       children: [
         _buildLaterJob(
@@ -240,7 +257,9 @@ class _TodayPageState extends State<TodayPage> {
           iconBg: AppColors.orangebg,
           iconColor: AppColors.orange,
           title: 'Add water',
-          subtitle: 'Cage B · later',
+          subtitle: today.nextCageName != null
+              ? '${today.nextCageName} · ${today.maintenancesToday} done today'
+              : 'No cages yet',
           route: '/cages',
         ),
         const SizedBox(height: 9),
@@ -249,7 +268,9 @@ class _TodayPageState extends State<TodayPage> {
           iconBg: AppColors.pale,
           iconColor: AppColors.green,
           title: 'Harvest',
-          subtitle: 'Batch 007 · ready',
+          subtitle: today.nextBatchName != null
+              ? '${today.nextBatchName} · ${today.harvestsToday} done today'
+              : 'No batches yet',
           route: '/harvest-larvae',
         ),
       ],
@@ -328,7 +349,19 @@ class _TodayPageState extends State<TodayPage> {
     );
   }
 
-  Widget _buildFarmPulse() {
+  Widget _buildFarmPulse(TodayProvider today) {
+    final thisWeek = today.harvestKgThisWeek;
+    final lastWeek = today.harvestKgLastWeek;
+
+    final String headline;
+    if (thisWeek == 0 && lastWeek == 0) {
+      headline = 'No harvests yet this week';
+    } else if (thisWeek >= lastWeek) {
+      headline = 'More larvae than last week';
+    } else {
+      headline = 'Less larvae than last week';
+    }
+
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, '/farm'),
       child: Container(
@@ -369,8 +402,8 @@ class _TodayPageState extends State<TodayPage> {
                       color: const Color(0xFF5B7C64),
                     ),
                   ),
-                  const OutfitText(
-                    text: 'More larvae than last week',
+                  OutfitText(
+                    text: headline,
                     fontSize: 17,
                     fontWeight: FontWeight.w800,
                     color: AppColors.green,
@@ -379,14 +412,15 @@ class _TodayPageState extends State<TodayPage> {
                 ],
               ),
             ),
-            const Text(
-              'SEE FARM',
-              style: TextStyle(
+            Text(
+              thisWeek == 0 ? '' : '$thisWeek kg',
+              style: const TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
                 color: AppColors.green,
               ),
             ),
+            const SizedBox(width: 4),
             const Icon(
               Icons.arrow_forward,
               color: AppColors.green,

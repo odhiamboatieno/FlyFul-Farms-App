@@ -13,6 +13,7 @@ import 'package:flyful_farms/features/feeding/presentation/providers/feeding_pro
 import 'package:flyful_farms/features/harvest/presentation/providers/harvest_provider.dart';
 import 'package:flyful_farms/features/profile/presentation/providers/sync_provider.dart';
 import 'package:flyful_farms/features/records/presentation/providers/record_provider.dart';
+import 'package:flyful_farms/features/dashboard/presentation/providers/today_provider.dart';
 import 'package:flyful_farms/core/sync/sync_service.dart';
 import 'package:flyful_farms/core/sync/sync_controller.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -80,6 +81,14 @@ Future<void> initDI() async {
 
   getIt.registerLazySingleton<RecordProvider>(
     () => RecordProvider(getIt<AppDatabase>().downloadDao),
+  );
+
+  getIt.registerLazySingleton<TodayProvider>(
+    () => TodayProvider(
+      getIt<AppDatabase>().batchDao,
+      getIt<AppDatabase>().cageDao,
+      getIt<AppDatabase>().downloadDao,
+    ),
   );
 
   getIt.registerLazySingleton<SyncService>(
