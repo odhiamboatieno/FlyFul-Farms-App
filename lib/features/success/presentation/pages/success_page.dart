@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
+import 'package:go_router/go_router.dart';
 
 class SuccessPage extends StatelessWidget {
   const SuccessPage({super.key});
@@ -31,7 +32,7 @@ class SuccessPage extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.pushNamed(context, '/today'),
+                  onPressed: () => context.go('/today'),
                   child: const Text('Back to today'),
                 ),
               ),

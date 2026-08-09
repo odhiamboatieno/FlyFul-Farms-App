@@ -19,11 +19,8 @@ class SettingsPage extends StatelessWidget {
             children: [
               _buildPageHeader(context, 'Settings', 'Make the app easy for you'),
               const SizedBox(height: 16),
-              _buildNavItem(Icons.language, 'English', 'Language', onTap: () {}),
-              _buildNavItem(Icons.volume_up, 'Reminder sound', '',
-                  trailing: Icon(Icons.toggle_on, size: 22, color: AppColors.green), onTap: () {}),
-              _buildNavItem(Icons.dark_mode, 'Dark mode', '',
-                  trailing: Icon(Icons.toggle_off, size: 22, color: AppColors.muted), onTap: () {}),
+              _buildNavItem(Icons.language, 'English', 'Language follows your phone'),
+              _buildNavItem(Icons.sync, 'Sync to server', 'Upload your work when online', onTap: () => Navigator.pushNamed(context, '/sync')),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () => _confirmLogout(context),
