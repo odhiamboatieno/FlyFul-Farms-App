@@ -16,12 +16,10 @@ class _FeedQuantityPageState extends State<FeedQuantityPage> {
   @override
   void initState() {
     super.initState();
-    _weightController.text =
-        Provider.of<FeedingProvider>(context, listen: false).draftQuantityKg == 0
-            ? '12'
-            : Provider.of<FeedingProvider>(context, listen: false)
-                .draftQuantityKg
-                .toString();
+    final draft = Provider.of<FeedingProvider>(context, listen: false).draftQuantityKg;
+    if (draft > 0) {
+      _weightController.text = draft.toString();
+    }
   }
 
   @override

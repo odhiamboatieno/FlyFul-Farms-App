@@ -1,6 +1,7 @@
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
+import 'package:flyful_farms/core/database/app_database.dart';
 import 'package:flyful_farms/shared/widgets/bottom_nav.dart';
 import 'package:flyful_farms/features/batches/presentation/providers/batch_provider.dart';
 import 'package:flyful_farms/features/breeding/presentation/providers/cage_provider.dart';
@@ -17,10 +18,19 @@ class JobsPage extends StatelessWidget {
     final activeBatches = batches.where((b) => b.status == 'active').toList();
     final activeCages = cages.where((c) => c.status == 'active').toList();
 
-    final feedBatch = activeBatches.isNotEmpty ? activeBatches.first.batchNumber : 'a batch';
+    final feedBatch = activeBatches.isNotEmpty ? activeBatches.first.batchNumber : null;
     final harvestBatch = activeBatches.length > 1 ? activeBatches.last.batchNumber : feedBatch;
-    final waterCage = activeCages.isNotEmpty ? activeCages.first.cageNumber : 'Cage A';
-    final eggCage = activeCages.length > 1 ? activeCages.last.cageNumber : waterCage;
+
+    BreedingCage? waterCage;
+    if (activeCages.isNotEmpty) {
+      waterCage = activeCages.firstWhere((c) => !c.waterAdded, orElse: () => activeCages.first);
+    } else if (cages.isNotEmpty) {
+      waterCage = cages.first;
+    }
+    final waterCageName = waterCage?.cageNumber;
+
+    final eggCage = activeCages.isNotEmpty ? activeCages.first : (cages.isNotEmpty ? cages.first : null);
+    final eggCageName = eggCage?.cageNumber;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -40,8 +50,8 @@ class JobsPage extends StatelessWidget {
                 icon: FontAwesomeIcons.bowlFood.data,
                 iconBg: AppColors.pale,
                 iconColor: AppColors.green,
-                title: activeBatches.isEmpty ? 'No batch to feed' : 'Feed Batch $feedBatch',
-                subtitle: activeBatches.isEmpty ? 'Create a batch first' : 'Do this first',
+                title: feedBatch == null ? 'No batch to feed' : 'Feed Batch $feedBatch',
+                subtitle: feedBatch == null ? 'Create a batch first' : 'Log feeding for this batch',
                 trailing: Icons.arrow_forward_ios,
                 onTap: () => Navigator.pushNamed(context, '/feed-type'),
               ),
@@ -50,8 +60,8 @@ class JobsPage extends StatelessWidget {
                 icon: Icons.water_drop,
                 iconBg: AppColors.orangebg,
                 iconColor: AppColors.orange,
-                title: activeCages.isEmpty ? 'No cage yet' : 'Add water · Cage $waterCage',
-                subtitle: activeCages.isEmpty ? 'Create a cage first' : 'Do after feeding',
+                title: waterCageName == null ? 'No cage yet' : 'Add water · Cage $waterCageName',
+                subtitle: waterCageName == null ? 'Create a cage first' : 'Cages need fresh water daily',
                 trailing: Icons.arrow_forward_ios,
                 onTap: () => Navigator.pushNamed(context, '/cages'),
               ),
@@ -60,8 +70,8 @@ class JobsPage extends StatelessWidget {
                 icon: Icons.balance,
                 iconBg: AppColors.pale,
                 iconColor: AppColors.orange,
-                title: activeBatches.isEmpty ? 'No batch to harvest' : 'Harvest Batch $harvestBatch',
-                subtitle: activeBatches.isEmpty ? 'Create a batch first' : 'Ready today',
+                title: harvestBatch == null ? 'No batch to harvest' : 'Harvest Batch $harvestBatch',
+                subtitle: harvestBatch == null ? 'Create a batch first' : 'Log larvae, frass and pupa',
                 trailing: Icons.arrow_forward_ios,
                 isUrgent: true,
                 onTap: () => Navigator.pushNamed(context, '/harvest-larvae'),
@@ -71,8 +81,8 @@ class JobsPage extends StatelessWidget {
                 icon: Icons.egg,
                 iconBg: AppColors.pale,
                 iconColor: AppColors.green,
-                title: activeCages.isEmpty ? 'No cage yet' : 'Collect eggs · Cage $eggCage',
-                subtitle: activeCages.isEmpty ? 'Create a cage first' : 'Do last',
+                title: eggCageName == null ? 'No cage yet' : 'Collect eggs · Cage $eggCageName',
+                subtitle: eggCageName == null ? 'Create a cage first' : 'Weigh today’s eggs',
                 trailing: Icons.arrow_forward_ios,
                 onTap: () => Navigator.pushNamed(context, '/eggs'),
               ),
