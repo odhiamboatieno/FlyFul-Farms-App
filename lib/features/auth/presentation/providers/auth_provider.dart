@@ -126,6 +126,42 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phone,
+    String? village,
+    String? county,
+  }) async {
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      final user = await _authService.updateProfile(
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        phone: phone,
+        village: village,
+        county: county,
+      );
+      if (user != null) {
+        _user = user;
+        notifyListeners();
+        return true;
+      }
+      _errorMessage = 'Could not update your profile. Please try again.';
+      _status = AuthStatus.error;
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = 'An error occurred. Please try again.';
+      _status = AuthStatus.error;
+      notifyListeners();
+      return false;
+    }
+  }
+
   void clearError() {
     _errorMessage = null;
     notifyListeners();

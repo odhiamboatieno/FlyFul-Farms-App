@@ -131,4 +131,34 @@ class AuthRepositoryImpl implements AuthService {
         ? AuthStatus.authenticated
         : AuthStatus.unauthenticated;
   }
+
+  @override
+  Future<UserModel?> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phone,
+    String? village,
+    String? county,
+  }) async {
+    final token = await getToken();
+    if (token == null) return null;
+    apiClient.setToken(token);
+
+    final data = <String, dynamic>{};
+    if (firstName != null) data['firstName'] = firstName;
+    if (lastName != null) data['lastName'] = lastName;
+    if (email != null) data['email'] = email;
+    if (phone != null) data['phone'] = phone;
+    if (village != null) data['village'] = village;
+    if (county != null) data['county'] = county;
+
+    if (data.isEmpty) return await getCurrentUser();
+
+    try {
+      return await remoteDataSource.updateProfile(data);
+    } catch (e) {
+      return null;
+    }
+  }
 }

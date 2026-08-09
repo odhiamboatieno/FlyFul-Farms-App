@@ -29,4 +29,11 @@ class AuthRemoteDataSource {
       Map<String, dynamic>.from(response['data'] as Map<String, dynamic>),
     );
   }
+
+  Future<UserModel> updateProfile(Map<String, dynamic> data) async {
+    final response = await apiClient.put(ApiEndpoints.updateProfile, data: data);
+    return UserModel.fromJson(
+      Map<String, dynamic>.from(response['data'] as Map<String, dynamic>),
+    );
+  }
 }

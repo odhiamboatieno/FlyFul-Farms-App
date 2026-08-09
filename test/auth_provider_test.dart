@@ -12,6 +12,9 @@ class _FakeAuthService implements AuthService {
   AuthStatus authStatusResult = AuthStatus.unauthenticated;
   Object? checkStatusError;
   User? currentUser;
+  User? updateResult;
+  Object? updateError;
+  Map<String, dynamic>? lastUpdate;
 
   @override
   Future<User?> login({
@@ -59,6 +62,27 @@ class _FakeAuthService implements AuthService {
   Future<AuthStatus> checkAuthStatus() async {
     if (checkStatusError != null) throw checkStatusError!;
     return authStatusResult;
+  }
+
+  @override
+  Future<User?> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phone,
+    String? village,
+    String? county,
+  }) async {
+    lastUpdate = {
+      'firstName': firstName,
+      'lastName': lastName,
+      'email': email,
+      'phone': phone,
+      'village': village,
+      'county': county,
+    };
+    if (updateError != null) throw updateError!;
+    return updateResult;
   }
 }
 
@@ -167,6 +191,38 @@ void main() {
 
       expect(provider.status, AuthStatus.unauthenticated);
       expect(provider.user, isNull);
+    });
+  });
+
+  group('updateProfile', () {
+    test('updates and stores user on success', () async {
+      const updated = User(id: 'uuid-1', email: 'new@b.com', firstName: 'Jane', lastName: 'Doe');
+      service.updateResult = updated;
+
+      final ok = await provider.updateProfile(firstName: 'Jane', lastName: 'Doe');
+
+      expect(ok, isTrue);
+      expect(provider.user, updated);
+      expect(service.lastUpdate?['firstName'], 'Jane');
+      expect(service.lastUpdate?['lastName'], 'Doe');
+    });
+
+    test('reports error when update returns null', () async {
+      service.updateResult = null;
+
+      final ok = await provider.updateProfile(firstName: 'Jane');
+
+      expect(ok, isFalse);
+      expect(provider.errorMessage, 'Could not update your profile. Please try again.');
+    });
+
+    test('handles thrown exceptions gracefully', () async {
+      service.updateError = Exception('network down');
+
+      final ok = await provider.updateProfile(firstName: 'Jane');
+
+      expect(ok, isFalse);
+      expect(provider.errorMessage, 'An error occurred. Please try again.');
     });
   });
 

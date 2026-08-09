@@ -27,4 +27,13 @@ abstract class AuthService {
   Future<void> clearToken();
   Future<User?> getCurrentUser();
   Future<AuthStatus> checkAuthStatus();
+
+  Future<User?> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phone,
+    String? village,
+    String? county,
+  });
 }

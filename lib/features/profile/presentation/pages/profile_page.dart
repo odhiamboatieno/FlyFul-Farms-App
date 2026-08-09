@@ -58,6 +58,8 @@ class ProfilePage extends StatelessWidget {
             const SizedBox(height: 7),
             _buildDetailRow(Icons.location_on, location),
             const SizedBox(height: 14),
+            _buildLinkRow(context, Icons.edit_outlined, 'Edit profile', '/edit-profile'),
+            const SizedBox(height: 7),
             _buildLinkRow(context, Icons.settings_outlined, 'Settings', '/settings'),
           ]),
         ),
