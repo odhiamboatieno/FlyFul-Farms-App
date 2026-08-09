@@ -28,6 +28,8 @@ abstract class AuthService {
   Future<User?> getCurrentUser();
   Future<AuthStatus> checkAuthStatus();
 
+  Future<bool> forgotPassword(String phone);
+
   Future<User?> updateProfile({
     String? firstName,
     String? lastName,

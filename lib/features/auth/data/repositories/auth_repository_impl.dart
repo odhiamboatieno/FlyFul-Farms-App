@@ -133,6 +133,12 @@ class AuthRepositoryImpl implements AuthService {
   }
 
   @override
+  Future<bool> forgotPassword(String phone) async {
+    await remoteDataSource.forgotPassword({'phone': phone});
+    return true;
+  }
+
+  @override
   Future<UserModel?> updateProfile({
     String? firstName,
     String? lastName,

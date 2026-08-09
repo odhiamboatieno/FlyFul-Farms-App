@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
+import 'package:flyful_farms/features/auth/presentation/providers/auth_provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
@@ -95,8 +97,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     );
   }
 
-  void _handleSubmit() {
-    if (_phoneController.text.trim().isEmpty) {
+  void _handleSubmit() async {
+    final phone = _phoneController.text.trim();
+    if (phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please enter your phone number')),
       );
@@ -105,16 +108,24 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
     setState(() => _isLoading = true);
 
-    Future.delayed(const Duration(seconds: 1), () {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
+    final auth = context.read<AuthProvider>();
+    final success = await auth.forgotPassword(phone);
+
+    if (!mounted) return;
+    setState(() => _isLoading = false);
+
+    if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Password reset instructions sent to your phone.'),
+          content: Text(auth.errorMessage ?? 'Password reset instructions sent to your phone.'),
           backgroundColor: AppColors.greenBg,
         ),
       );
       context.go('/login');
-    });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(auth.errorMessage ?? 'Something went wrong. Please try again.')),
+      );
+    }
   }
 }

@@ -15,11 +15,9 @@ import 'package:flyful_farms/features/breeding/presentation/pages/maintenance_pa
 import 'package:flyful_farms/features/feeding/presentation/pages/feed_type_page.dart';
 import 'package:flyful_farms/features/feeding/presentation/pages/feed_quantity_page.dart';
 import 'package:flyful_farms/features/feeding/presentation/pages/feed_photo_page.dart';
-import 'package:flyful_farms/features/harvest/presentation/pages/harvest_page.dart';
 import 'package:flyful_farms/features/harvest/presentation/pages/harvest_larvae_page.dart';
 import 'package:flyful_farms/features/harvest/presentation/pages/harvest_frass_page.dart';
 import 'package:flyful_farms/features/harvest/presentation/pages/harvest_pupa_page.dart';
-import 'package:flyful_farms/features/inventory/presentation/pages/inventory_page.dart';
 import 'package:flyful_farms/features/reports/presentation/pages/reports_page.dart';
 import 'package:flyful_farms/features/reports/presentation/pages/compare_page.dart';
 import 'package:flyful_farms/features/reports/presentation/pages/stock_page.dart';
@@ -54,11 +52,9 @@ class AppRouter {
       GoRoute(path: '/feed-type', builder: (context, state) => const FeedTypePage()),
       GoRoute(path: '/feed', builder: (context, state) => const FeedQuantityPage()),
       GoRoute(path: '/feed-photo', builder: (context, state) => const FeedPhotoPage()),
-      GoRoute(path: '/harvest', builder: (context, state) => const HarvestPage()),
       GoRoute(path: '/harvest-larvae', builder: (context, state) => const HarvestLarvaePage()),
       GoRoute(path: '/harvest-frass', builder: (context, state) => const HarvestFrassPage()),
       GoRoute(path: '/harvest-pupa', builder: (context, state) => const HarvestPupaPage()),
-      GoRoute(path: '/inventory', builder: (context, state) => const InventoryPage()),
       GoRoute(path: '/reports', builder: (context, state) => const ReportsPage()),
       GoRoute(path: '/stock', builder: (context, state) => const StockPage()),
       GoRoute(path: '/compare', builder: (context, state) => const ComparePage()),

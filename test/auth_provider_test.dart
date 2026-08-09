@@ -15,6 +15,16 @@ class _FakeAuthService implements AuthService {
   User? updateResult;
   Object? updateError;
   Map<String, dynamic>? lastUpdate;
+  bool forgotResult = true;
+  Object? forgotError;
+  String? lastForgotPhone;
+
+  @override
+  Future<bool> forgotPassword(String phone) async {
+    lastForgotPhone = phone;
+    if (forgotError != null) throw forgotError!;
+    return forgotResult;
+  }
 
   @override
   Future<User?> login({
@@ -191,6 +201,25 @@ void main() {
 
       expect(provider.status, AuthStatus.unauthenticated);
       expect(provider.user, isNull);
+    });
+  });
+
+  group('forgotPassword', () {
+    test('returns true and passes the phone through on success', () async {
+      final ok = await provider.forgotPassword('0712345678');
+
+      expect(ok, isTrue);
+      expect(service.lastForgotPhone, '0712345678');
+      expect(provider.errorMessage, isNull);
+    });
+
+    test('handles thrown exceptions gracefully', () async {
+      service.forgotError = Exception('network down');
+
+      final ok = await provider.forgotPassword('0712345678');
+
+      expect(ok, isFalse);
+      expect(provider.errorMessage, 'Could not send reset instructions. Please try again.');
     });
   });
 

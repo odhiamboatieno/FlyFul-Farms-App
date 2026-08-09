@@ -126,6 +126,19 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> forgotPassword(String phone) async {
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      return await _authService.forgotPassword(phone);
+    } catch (e) {
+      _errorMessage = 'Could not send reset instructions. Please try again.';
+      _status = AuthStatus.error;
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<bool> updateProfile({
     String? firstName,
     String? lastName,
