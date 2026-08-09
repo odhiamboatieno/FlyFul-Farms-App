@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/shared/widgets/bottom_nav.dart';
+import 'package:flyful_farms/core/database/app_database.dart';
 import 'package:flyful_farms/features/profile/presentation/providers/sync_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -60,6 +61,23 @@ class SyncPage extends StatelessWidget {
               const Text('Last sync had errors. Check your connection and try again.',
                   style: TextStyle(fontSize: 12, color: AppColors.orange)),
             ],
+            const SizedBox(height: 24),
+            Text(pending == 0 ? 'Nothing waiting to send' : 'Waiting to send',
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink)),
+            const SizedBox(height: 10),
+            if (pending == 0)
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(color: AppColors.orangebg),
+                ),
+                child: const Text('All your saved records have been sent to the server.',
+                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              )
+            else
+              ...sync.pendingOperations.map((op) => _PendingItem(op: op)),
           ]),
         ),
       ),
@@ -82,5 +100,84 @@ class SyncPage extends StatelessWidget {
         Text(subtitle, style: TextStyle(fontSize: 15, height: 1.45, color: AppColors.textSecondary)),
       ]),
     ]);
+  }
+}
+
+class _PendingItem extends StatelessWidget {
+  final SyncOutboxe op;
+  const _PendingItem({required this.op});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: AppColors.orangebg),
+      ),
+      child: Row(children: [
+        Icon(_iconFor(op.entityType), color: AppColors.green, size: 19),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(_labelFor(op.entityType, op.operation),
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.ink)),
+            Text(_metaLabel(op), style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+          ]),
+        ),
+        if (op.errorMessage != null)
+          const Tooltip(
+            message: 'Failed to send',
+            child: Icon(Icons.error_outline, color: AppColors.orange, size: 16),
+          ),
+      ]),
+    );
+  }
+
+  String _metaLabel(SyncOutboxe op) {
+    final time = DateFormat('HH:mm').format(op.createdAt.toLocal());
+    final base = op.operation == 'delete' ? 'Queued to delete at $time' : 'Saved at $time';
+    return op.errorMessage == null ? base : '$base — will retry on next sync';
+  }
+
+  IconData _iconFor(String entityType) {
+    switch (entityType) {
+      case 'batch':
+        return Icons.grain;
+      case 'breeding_cage':
+        return Icons.holiday_village_outlined;
+      case 'feeding':
+        return Icons.restaurant;
+      case 'harvest':
+        return Icons.savings;
+      case 'egg_collection':
+        return Icons.egg_outlined;
+      case 'cage_maintenance':
+        return Icons.cleaning_services_outlined;
+      default:
+        return Icons.cloud_upload_outlined;
+    }
+  }
+
+  String _labelFor(String entityType, String operation) {
+    final action = operation == 'delete' ? 'Deleted' : 'New';
+    switch (entityType) {
+      case 'batch':
+        return '$action batch';
+      case 'breeding_cage':
+        return '$action breeding cage';
+      case 'feeding':
+        return '$action feeding record';
+      case 'harvest':
+        return '$action harvest record';
+      case 'egg_collection':
+        return '$action egg collection';
+      case 'cage_maintenance':
+        return '$action cage maintenance';
+      default:
+        return '$action record';
+    }
   }
 }

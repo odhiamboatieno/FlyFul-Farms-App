@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flyful_farms/core/database/app_database.dart';
 import 'package:flyful_farms/core/database/daos/sync_dao.dart';
 import 'package:flyful_farms/core/sync/sync_controller.dart';
 import 'package:flyful_farms/core/sync/sync_service.dart';
@@ -7,7 +8,7 @@ class SyncProvider extends ChangeNotifier {
   final SyncDao _syncDao;
   final SyncController _controller;
 
-  int _pendingCount = 0;
+  List<SyncOutboxe> _pending = [];
   bool _loading = false;
   SyncResult? _lastResult;
 
@@ -15,7 +16,8 @@ class SyncProvider extends ChangeNotifier {
     _controller.addListener(notifyListeners);
   }
 
-  int get pendingCount => _pendingCount;
+  List<SyncOutboxe> get pendingOperations => _pending;
+  int get pendingCount => _pending.length;
   bool get loading => _loading;
   bool get isSyncing => _controller.isSyncing;
   DateTime? get lastSyncedAt => _controller.lastSyncedAt;
@@ -27,9 +29,9 @@ class SyncProvider extends ChangeNotifier {
     _loading = true;
     notifyListeners();
     try {
-      _pendingCount = (await _syncDao.getPendingOperations()).length;
+      _pending = await _syncDao.getPendingOperations();
     } catch (_) {
-      _pendingCount = 0;
+      _pending = [];
     } finally {
       _loading = false;
       notifyListeners();

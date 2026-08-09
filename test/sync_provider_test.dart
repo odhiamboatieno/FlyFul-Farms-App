@@ -90,6 +90,8 @@ void main() {
 
     await provider.loadPending();
     expect(provider.pendingCount, 1);
+    expect(provider.pendingOperations, hasLength(1));
+    expect(provider.pendingOperations.single.entityType, 'batch');
   });
 
   test('syncNow drains pending ops and updates lastSyncedAt', () async {
