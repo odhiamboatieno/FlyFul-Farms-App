@@ -18,6 +18,7 @@ class _FakeAuthService implements AuthService {
   bool forgotResult = true;
   Object? forgotError;
   String? lastForgotPhone;
+  Object? logoutError;
 
   @override
   Future<bool> forgotPassword(String phone) async {
@@ -54,7 +55,9 @@ class _FakeAuthService implements AuthService {
   }
 
   @override
-  Future<void> logout() async {}
+  Future<void> logout() async {
+    if (logoutError != null) throw logoutError!;
+  }
 
   @override
   Future<void> saveToken(String token) async {}
@@ -196,6 +199,17 @@ void main() {
       service.loginResult = user;
       await provider.login(email: 'a@b.com', password: 'pw');
       expect(provider.status, AuthStatus.authenticated);
+
+      await provider.logout();
+
+      expect(provider.status, AuthStatus.unauthenticated);
+      expect(provider.user, isNull);
+    });
+
+    test('still signs out when the remote call fails offline', () async {
+      service.loginResult = user;
+      await provider.login(email: 'a@b.com', password: 'pw');
+      service.logoutError = Exception('offline');
 
       await provider.logout();
 

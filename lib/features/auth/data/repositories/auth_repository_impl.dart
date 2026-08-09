@@ -88,7 +88,12 @@ class AuthRepositoryImpl implements AuthService {
 
   @override
   Future<void> logout() async {
-    await remoteDataSource.logout();
+    try {
+      await remoteDataSource.logout();
+    } catch (_) {
+      // Offline-first: a failed remote call must not block signing out.
+      // The local token is cleared below; the server token expires on its own.
+    }
     await clearToken();
   }
 

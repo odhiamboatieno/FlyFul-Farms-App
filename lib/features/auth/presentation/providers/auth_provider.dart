@@ -120,7 +120,11 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> logout() async {
-    await _authService.logout();
+    try {
+      await _authService.logout();
+    } catch (_) {
+      // Signing out must always succeed locally even if the remote call fails.
+    }
     _user = null;
     _status = AuthStatus.unauthenticated;
     notifyListeners();
