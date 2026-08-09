@@ -87,7 +87,10 @@ Future<void> initDI() async {
   );
 
   getIt.registerLazySingleton<RecordProvider>(
-    () => RecordProvider(getIt<AppDatabase>().downloadDao),
+    () => RecordProvider(
+      getIt<AppDatabase>().downloadDao,
+      getIt<AppDatabase>().syncDao,
+    ),
   );
 
   getIt.registerLazySingleton<TodayProvider>(

@@ -112,6 +112,11 @@ class DownloadDao extends DatabaseAccessor<AppDatabase> {
   Future<List<EggCollection>> allEggCollections() => (select(db.eggCollections)).get();
   Future<List<CageMaintenance>> allMaintenances() => (select(db.cageMaintenances)).get();
 
+  Future<int> deleteFeeding(int id) => (delete(db.feedings)..where((t) => t.id.equals(id))).go();
+  Future<int> deleteHarvest(int id) => (delete(db.harvests)..where((t) => t.id.equals(id))).go();
+  Future<int> deleteEggCollection(int id) => (delete(db.eggCollections)..where((t) => t.id.equals(id))).go();
+  Future<int> deleteMaintenance(int id) => (delete(db.cageMaintenances)..where((t) => t.id.equals(id))).go();
+
   Future<List<Feeding>> feedingsForBatch(String batchId) {
     return (select(db.feedings)
           ..where((t) => t.batchId.equals(batchId))

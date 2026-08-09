@@ -71,6 +71,11 @@ class _CageDetailPageState extends State<CageDetailPage> {
                         Icons.egg,
                         '${e.eggWeightGrams.isEmpty ? '0' : e.eggWeightGrams} g',
                         '${_qualityLabel(e.quality)} · ${DateFormat('MMM d').format(e.collectedAt)}',
+                        onDelete: () => _confirmDeleteRecord(
+                          context,
+                          description: 'Delete this egg collection record?',
+                          onDelete: () => context.read<RecordProvider>().deleteEggCollection(e),
+                        ),
                       ),
                     )),
               const SizedBox(height: 14),
@@ -85,6 +90,11 @@ class _CageDetailPageState extends State<CageDetailPage> {
                         Icons.cleaning_services,
                         _maintenanceLabel(m),
                         DateFormat('MMM d').format(m.maintenanceDate),
+                        onDelete: () => _confirmDeleteRecord(
+                          context,
+                          description: 'Delete this maintenance record?',
+                          onDelete: () => context.read<RecordProvider>().deleteMaintenance(m),
+                        ),
                       ),
                     )),
             ],
@@ -115,7 +125,7 @@ class _CageDetailPageState extends State<CageDetailPage> {
     );
   }
 
-  Widget _buildRecord(IconData icon, String title, String subtitle) {
+  Widget _buildRecord(IconData icon, String title, String subtitle, {VoidCallback? onDelete}) {
     return Container(
       padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(5),
@@ -128,8 +138,38 @@ class _CageDetailPageState extends State<CageDetailPage> {
           Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.ink)),
           Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
         ])),
+        if (onDelete != null)
+          IconButton(
+            onPressed: onDelete,
+            icon: const Icon(Icons.delete_outline, color: AppColors.red, size: 19),
+          ),
       ]),
     );
+  }
+
+  Future<void> _confirmDeleteRecord(
+    BuildContext context, {
+    required String description,
+    required Future<void> Function() onDelete,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete record?'),
+        content: Text(description),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete', style: TextStyle(color: AppColors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      await onDelete();
+    }
   }
 
   String _qualityLabel(String quality) {

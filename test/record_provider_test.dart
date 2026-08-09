@@ -9,7 +9,7 @@ void main() {
 
   setUp(() {
     db = AppDatabase.inMemory();
-    provider = RecordProvider(db.downloadDao);
+    provider = RecordProvider(db.downloadDao, db.syncDao);
   });
 
   tearDown(() async {
@@ -84,5 +84,79 @@ void main() {
     expect(provider.maintenances, hasLength(1));
     expect(provider.maintenances.first.cageId, 'cage-1');
     expect(provider.maintenances.first.waterChanged, isTrue);
+  });
+
+  test('deleteFeeding removes the row and queues a delete op', () async {
+    await db.downloadDao.insertFeeding(FeedingsCompanion.insert(
+      remoteId: drift.Value('f-1'),
+      batchId: 'batch-1',
+      wasteQuantityKg: 12.5,
+      wasteType: 'vegetables',
+      fedAt: DateTime(2026, 8, 5),
+    ));
+    await provider.loadBatchRecords('batch-1');
+
+    await provider.deleteFeeding(provider.feedings.single);
+
+    expect(provider.feedings, isEmpty);
+    final pending = await db.syncDao.getPendingOperations();
+    final delete = pending.firstWhere((op) => op.operation == 'delete');
+    expect(delete.entityType, 'feeding');
+    expect(delete.entityId, 'f-1');
+  });
+
+  test('deleteHarvest removes the row and queues a delete op', () async {
+    await db.downloadDao.insertHarvest(HarvestsCompanion.insert(
+      remoteId: drift.Value('h-1'),
+      batchId: 'batch-1',
+      wetLarvaeKg: 30.0,
+      harvestedAt: DateTime(2026, 8, 6),
+    ));
+    await provider.loadBatchRecords('batch-1');
+
+    await provider.deleteHarvest(provider.harvests.single);
+
+    expect(provider.harvests, isEmpty);
+    final delete = (await db.syncDao.getPendingOperations())
+        .firstWhere((op) => op.operation == 'delete');
+    expect(delete.entityType, 'harvest');
+    expect(delete.entityId, 'h-1');
+  });
+
+  test('deleteEggCollection removes the row and queues a delete op', () async {
+    await db.downloadDao.insertEggCollection(EggCollectionsCompanion.insert(
+      remoteId: drift.Value('e-1'),
+      cageId: 'cage-1',
+      eggWeightGrams: drift.Value('250'),
+      quality: drift.Value('good'),
+      collectedAt: DateTime(2026, 8, 5),
+    ));
+    await provider.loadCageRecords('cage-1');
+
+    await provider.deleteEggCollection(provider.eggCollections.single);
+
+    expect(provider.eggCollections, isEmpty);
+    final delete = (await db.syncDao.getPendingOperations())
+        .firstWhere((op) => op.operation == 'delete');
+    expect(delete.entityType, 'egg_collection');
+    expect(delete.entityId, 'e-1');
+  });
+
+  test('deleteMaintenance removes the row and queues a delete op', () async {
+    await db.downloadDao.insertCageMaintenance(CageMaintenancesCompanion.insert(
+      remoteId: drift.Value('m-1'),
+      cageId: 'cage-1',
+      maintenanceDate: DateTime(2026, 8, 6),
+      waterChanged: drift.Value(true),
+    ));
+    await provider.loadCageRecords('cage-1');
+
+    await provider.deleteMaintenance(provider.maintenances.single);
+
+    expect(provider.maintenances, isEmpty);
+    final delete = (await db.syncDao.getPendingOperations())
+        .firstWhere((op) => op.operation == 'delete');
+    expect(delete.entityType, 'cage_maintenance');
+    expect(delete.entityId, 'm-1');
   });
 }
