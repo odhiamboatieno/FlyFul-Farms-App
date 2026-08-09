@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/shared/widgets/bottom_nav.dart';
+import 'package:flyful_farms/features/auth/presentation/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -22,12 +24,54 @@ class SettingsPage extends StatelessWidget {
                   trailing: Icon(Icons.toggle_on, size: 22, color: AppColors.green), onTap: () {}),
               _buildNavItem(Icons.dark_mode, 'Dark mode', '',
                   trailing: Icon(Icons.toggle_off, size: 22, color: AppColors.muted), onTap: () {}),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () => _confirmLogout(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppColors.red,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(5),
+                    side: const BorderSide(color: AppColors.orangebg),
+                  ),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.logout, size: 17),
+                    SizedBox(width: 7),
+                    Text('Log out', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
       ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 4),
     );
+  }
+
+  Future<void> _confirmLogout(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Log out?'),
+        content: const Text('Your work stays on this phone and will sync when you log back in.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Log out', style: TextStyle(color: AppColors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      await context.read<AuthProvider>().logout();
+    }
   }
 
   Widget _buildPageHeader(BuildContext context, String title, String subtitle) {

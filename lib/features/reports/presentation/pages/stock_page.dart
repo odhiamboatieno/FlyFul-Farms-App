@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/shared/widgets/bottom_nav.dart';
+import 'package:flyful_farms/features/dashboard/presentation/providers/farm_provider.dart';
+import 'package:provider/provider.dart';
 
 class StockPage extends StatelessWidget {
   const StockPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final farm = context.watch<FarmProvider>();
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -15,22 +19,28 @@ class StockPage extends StatelessWidget {
           child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             _buildPageHeader(context, 'Farm stock', 'What you have now'),
             const SizedBox(height: 16),
-            _buildStockCard(Icons.eco, '84 KG', 'Larvae'),
+            _buildStockCard(Icons.eco, _formatKg(farm.larvaeKg), 'Larvae'),
             const SizedBox(height: 9),
-            _buildStockCard(Icons.egg, '48 G', 'Eggs'),
+            _buildStockCard(Icons.egg, _formatGrams(farm.eggGrams), 'Eggs'),
             const SizedBox(height: 9),
-            _buildStockCard(Icons.circle, '8.7 KG', 'Pupa'),
+            _buildStockCard(Icons.circle, _formatKg(farm.pupaKg), 'Pupa'),
             const SizedBox(height: 9),
-            _buildStockCard(Icons.eco, '62 KG', 'Frass'),
+            _buildStockCard(Icons.eco, _formatKg(farm.frassKg), 'Frass'),
             const SizedBox(height: 9),
-            _buildStockCard(Icons.recycling, '120 KG', 'Waste ready'),
-            const SizedBox(height: 9),
-            _buildStockCard(Icons.layers, '6', 'Live batches'),
+            _buildStockCard(Icons.layers, '${farm.batchCount}', 'Live batches'),
           ]),
         ),
       ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 4),
     );
+  }
+
+  String _formatKg(double value) {
+    return value == value.roundToDouble() ? '${value.round()} KG' : '${value.toStringAsFixed(1)} KG';
+  }
+
+  String _formatGrams(double value) {
+    return '${value.round()} G';
   }
 
   Widget _buildPageHeader(BuildContext context, String title, String subtitle) {
