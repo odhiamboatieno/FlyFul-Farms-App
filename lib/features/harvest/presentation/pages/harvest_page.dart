@@ -7,7 +7,6 @@ class HarvestPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int currentIndex = 0;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -24,7 +23,7 @@ class HarvestPage extends StatelessWidget {
           ]),
         ),
       ),
-      bottomNavigationBar: BottomNavBar(currentIndex: currentIndex, onTap: (i) => currentIndex = i),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 0),
     );
   }
 

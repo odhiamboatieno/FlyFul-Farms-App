@@ -12,8 +12,6 @@ class FarmPage extends StatefulWidget {
 }
 
 class _FarmPageState extends State<FarmPage> {
-  int _currentIndex = 4;
-
   @override
   Widget build(BuildContext context) {
     final farm = context.watch<FarmProvider>();
@@ -35,7 +33,7 @@ class _FarmPageState extends State<FarmPage> {
           ]),
         ),
       ),
-      bottomNavigationBar: BottomNavBar(currentIndex: _currentIndex, onTap: (i) => setState(() => _currentIndex = i)),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 4),
     );
   }
 

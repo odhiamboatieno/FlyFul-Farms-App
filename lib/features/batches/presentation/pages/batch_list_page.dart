@@ -14,7 +14,6 @@ class BatchListPage extends StatefulWidget {
 
 class _BatchListPageState extends State<BatchListPage> {
   final _searchController = TextEditingController();
-  int _currentIndex = 1;
 
   Future<void> _syncNow() async {
     final sync = context.read<SyncProvider>();
@@ -123,7 +122,7 @@ class _BatchListPageState extends State<BatchListPage> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavBar(currentIndex: _currentIndex, onTap: (i) => setState(() => _currentIndex = i)),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 1),
     );
   }
 

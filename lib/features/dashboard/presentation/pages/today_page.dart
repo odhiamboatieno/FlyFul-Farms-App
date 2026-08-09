@@ -15,12 +15,6 @@ class TodayPage extends StatefulWidget {
 }
 
 class _TodayPageState extends State<TodayPage> {
-  int _currentIndex = 0;
-
-  void _handleNavTap(int index) {
-    setState(() => _currentIndex = index);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,7 +36,7 @@ class _TodayPageState extends State<TodayPage> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavBar(currentIndex: _currentIndex, onTap: _handleNavTap),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 0),
     );
   }
 
