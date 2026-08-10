@@ -281,4 +281,31 @@ void main() {
     expect(cages.single.cageNumber, 'C-7');
     expect(cages.single.attractantInstalled, isTrue);
   });
+
+  test('fresh device bootstraps full history and advances the cursor', () async {
+    final requestedSinces = <String>[];
+    final sync = SyncService(
+      db.syncDao,
+      db.downloadDao,
+      storage,
+      post: (path, data) async => {'status': 'success', 'data': {'processed': 0, 'conflictCount': 0, 'results': <dynamic>[], 'conflicts': <dynamic>[]}},
+      get: (path, {queryParameters}) async {
+        requestedSinces.add(queryParameters?['since']?.toString() ?? '');
+        return {
+          'status': 'success',
+          'data': {
+            'changes': <dynamic>[],
+            'count': 0,
+            'since': '2026-08-10T12:00:00.000Z',
+          },
+        };
+      },
+    );
+
+    await sync.syncDownload();
+
+    expect(requestedSinces, hasLength(1));
+    expect(requestedSinces.first, startsWith('1970-'));
+    expect(storage.store['sync_last_download'], '2026-08-10T12:00:00.000Z');
+  });
 }

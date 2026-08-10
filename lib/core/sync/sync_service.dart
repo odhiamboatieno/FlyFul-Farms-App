@@ -156,7 +156,7 @@ class SyncService {
 
   Future<int> syncDownload() async {
     final since = await _storage.read(_lastDownloadKey) ??
-        DateTime.now().toUtc().subtract(const Duration(days: 1)).toIso8601String();
+        DateTime.fromMillisecondsSinceEpoch(0, isUtc: true).toIso8601String();
 
     final response = await fetch(
       ApiEndpoints.syncDownload,
