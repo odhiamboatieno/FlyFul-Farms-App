@@ -64,7 +64,7 @@ class JobsPage extends StatelessWidget {
                 title: waterCageName == null ? 'No cage yet' : 'Add water · Cage $waterCageName',
                 subtitle: waterCageName == null ? 'Create a cage first' : 'Cages need fresh water daily',
                 trailing: Icons.arrow_forward_ios,
-                onTap: () => context.push('/cages'),
+                onTap: () => context.push('/maintenance'),
               ),
               const SizedBox(height: 9),
               _buildTask(

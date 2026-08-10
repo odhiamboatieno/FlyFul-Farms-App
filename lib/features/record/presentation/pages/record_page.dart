@@ -23,7 +23,7 @@ class RecordPage extends StatelessWidget {
                 _buildChoice(context, Icons.food_bank, 'Fed larvae', '/feed-type'),
                 _buildChoice(context, Icons.balance, 'Harvested', '/harvest-larvae'),
                 _buildChoice(context, Icons.egg, 'Collected eggs', '/eggs'),
-                _buildChoice(context, Icons.water_drop, 'Worked on cage', '/cages'),
+                _buildChoice(context, Icons.water_drop, 'Worked on cage', '/maintenance'),
                 _buildChoice(context, Icons.inventory_2_outlined, 'Start a batch', '/batches/new'),
                 _buildChoice(context, Icons.warehouse_outlined, 'Add a cage', '/cages/new'),
               ],
