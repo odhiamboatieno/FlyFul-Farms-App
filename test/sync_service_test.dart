@@ -228,4 +228,57 @@ void main() {
 
     expect(await db.downloadDao.allHarvests(), hasLength(1));
   });
+
+  test('syncDownload applies batch and breeding cage changes', () async {
+    final sync = buildService(download: {
+      'status': 'success',
+      'data': {
+        'changes': [
+          {
+            'entityType': 'batch',
+            'entityId': 'b1',
+            'payload': {
+              'id': 'b1',
+              'batchNumber': 'B-100',
+              'wasteType': 'vegetable',
+              'wasteQuantityKg': 40,
+              'neonatesAdded': 5000,
+              'status': 'active',
+              'dayNumber': 3,
+              'startDate': '2026-08-01T00:00:00.000Z',
+              'updatedAt': '2026-08-05T10:00:00.000Z',
+            },
+          },
+          {
+            'entityType': 'breeding_cage',
+            'entityId': 'c1',
+            'payload': {
+              'id': 'c1',
+              'cageNumber': 'C-7',
+              'status': 'active',
+              'ageDays': 12,
+              'pupaLoadedKg': 8.5,
+              'attractantInstalled': true,
+              'waterAdded': false,
+              'updatedAt': '2026-08-05T10:00:00.000Z',
+            },
+          },
+        ],
+        'count': 2,
+        'since': '2026-08-06T00:00:00.000Z',
+      },
+    });
+
+    final applied = await sync.syncDownload();
+
+    expect(applied, 2);
+    final batches = await db.batchDao.getAllBatches();
+    expect(batches, hasLength(1));
+    expect(batches.single.batchNumber, 'B-100');
+    expect(batches.single.remoteId, 'b1');
+    final cages = await db.cageDao.getAllCages();
+    expect(cages, hasLength(1));
+    expect(cages.single.cageNumber, 'C-7');
+    expect(cages.single.attractantInstalled, isTrue);
+  });
 }

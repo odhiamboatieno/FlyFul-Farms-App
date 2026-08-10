@@ -177,6 +177,8 @@ class SyncService {
       if (remoteId == null || remoteId.isEmpty) continue;
 
       final handled = switch (entityType) {
+        'batch' => await _upsertBatch(remoteId, payload),
+        'breeding_cage' => await _upsertBreedingCage(remoteId, payload),
         'feeding' => await _upsertFeeding(remoteId, payload),
         'harvest' => await _upsertHarvest(remoteId, payload),
         'egg_collection' => await _upsertEggCollection(remoteId, payload),
@@ -191,6 +193,55 @@ class SyncService {
     }
 
     return applied;
+  }
+
+  Future<bool> _upsertBatch(String remoteId, Map<String, dynamic> p) async {
+    final updatedAt = DateTime.tryParse(p['updatedAt']?.toString() ?? '') ?? DateTime.now();
+    final startDate = p['startDate']?.toString() ?? updatedAt.toIso8601String();
+    await _downloadDao.upsertBatch(Batche(
+      id: 0,
+      remoteId: remoteId,
+      batchNumber: p['batchNumber']?.toString() ?? '',
+      farmerId: p['farmId']?.toString() ?? '',
+      farmerName: '',
+      wasteType: p['wasteType']?.toString() ?? 'mixed_waste',
+      wasteQuantityKg: double.tryParse(p['wasteQuantityKg']?.toString() ?? '') ?? 0,
+      neonatesAdded: int.tryParse(p['neonatesAdded']?.toString() ?? '') ?? 0,
+      status: p['status']?.toString() ?? 'active',
+      dayNumber: int.tryParse(p['dayNumber']?.toString() ?? '') ?? 0,
+      startDate: startDate,
+      expectedHarvestDate: p['expectedHarvestDate']?.toString() ?? '',
+      actualHarvestDate: p['actualHarvestDate']?.toString(),
+      notes: p['notes']?.toString(),
+      photoUrl: p['photoUrl']?.toString(),
+      latitude: double.tryParse(p['latitude']?.toString() ?? ''),
+      longitude: double.tryParse(p['longitude']?.toString() ?? ''),
+      createdAt: updatedAt,
+      updatedAt: updatedAt,
+    ));
+    return true;
+  }
+
+  Future<bool> _upsertBreedingCage(String remoteId, Map<String, dynamic> p) async {
+    final updatedAt = DateTime.tryParse(p['updatedAt']?.toString() ?? '') ?? DateTime.now();
+    await _downloadDao.upsertBreedingCage(BreedingCage(
+      id: 0,
+      remoteId: remoteId,
+      cageNumber: p['cageNumber']?.toString() ?? '',
+      farmerId: p['farmId']?.toString() ?? '',
+      status: p['status']?.toString() ?? 'active',
+      ageDays: int.tryParse(p['ageDays']?.toString() ?? '') ?? 0,
+      pupaLoadedKg: double.tryParse(p['pupaLoadedKg']?.toString() ?? '') ?? 0,
+      pupaSource: p['pupaSource']?.toString(),
+      breedingDate: DateTime.tryParse(p['breedingDate']?.toString() ?? ''),
+      lastMaintenanceDate: DateTime.tryParse(p['lastMaintenanceDate']?.toString() ?? ''),
+      attractantInstalled: p['attractantInstalled'] == true,
+      waterAdded: p['waterAdded'] == true,
+      notes: p['notes']?.toString(),
+      createdAt: updatedAt,
+      updatedAt: updatedAt,
+    ));
+    return true;
   }
 
   Future<bool> _upsertFeeding(String remoteId, Map<String, dynamic> p) async {

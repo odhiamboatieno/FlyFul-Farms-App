@@ -9,6 +9,8 @@ mixin _$DownloadDaoMixin on DatabaseAccessor<AppDatabase> {
   $EggCollectionsTable get eggCollections => attachedDatabase.eggCollections;
   $CageMaintenancesTable get cageMaintenances =>
       attachedDatabase.cageMaintenances;
+  $BatchesTable get batches => attachedDatabase.batches;
+  $BreedingCagesTable get breedingCages => attachedDatabase.breedingCages;
   DownloadDaoManager get managers => DownloadDaoManager(this);
 }
 
@@ -29,4 +31,8 @@ class DownloadDaoManager {
         _db.attachedDatabase,
         _db.cageMaintenances,
       );
+  $$BatchesTableTableManager get batches =>
+      $$BatchesTableTableManager(_db.attachedDatabase, _db.batches);
+  $$BreedingCagesTableTableManager get breedingCages =>
+      $$BreedingCagesTableTableManager(_db.attachedDatabase, _db.breedingCages);
 }

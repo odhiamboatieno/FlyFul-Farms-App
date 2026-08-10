@@ -4,14 +4,79 @@ import 'package:flyful_farms/core/database/tables/feedings.dart';
 import 'package:flyful_farms/core/database/tables/harvests.dart';
 import 'package:flyful_farms/core/database/tables/egg_collections.dart';
 import 'package:flyful_farms/core/database/tables/maintenance.dart';
+import 'package:flyful_farms/core/database/tables/batches.dart';
+import 'package:flyful_farms/core/database/tables/cages.dart';
 
 part 'download_dao.g.dart';
 
-@DriftAccessor(tables: [Feedings, Harvests, EggCollections, CageMaintenances])
+@DriftAccessor(tables: [Feedings, Harvests, EggCollections, CageMaintenances, Batches, BreedingCages])
 class DownloadDao extends DatabaseAccessor<AppDatabase> {
   final AppDatabase db;
 
   DownloadDao(this.db) : super(db);
+
+  Future<int> upsertBatch(Batche batch) async {
+    final existing = await (select(db.batches)
+          ..where((t) => t.remoteId.equals(batch.remoteId!)))
+        .getSingleOrNull();
+    if (existing != null) {
+      await (update(db.batches)..where((t) => t.id.equals(existing.id)))
+          .write(batch);
+      return existing.id;
+    }
+    return await insertBatch(BatchesCompanion.insert(
+      remoteId: Value(batch.remoteId),
+      batchNumber: Value(batch.batchNumber),
+      wasteType: Value(batch.wasteType),
+      wasteQuantityKg: Value(batch.wasteQuantityKg),
+      neonatesAdded: Value(batch.neonatesAdded),
+      status: Value(batch.status),
+      dayNumber: Value(batch.dayNumber),
+      startDate: batch.startDate,
+      expectedHarvestDate: batch.expectedHarvestDate,
+      actualHarvestDate: Value(batch.actualHarvestDate),
+      notes: Value(batch.notes),
+      photoUrl: Value(batch.photoUrl),
+      latitude: Value(batch.latitude),
+      longitude: Value(batch.longitude),
+      createdAt: Value(batch.createdAt),
+      updatedAt: Value(batch.updatedAt),
+    ));
+  }
+
+  Future<int> insertBatch(BatchesCompanion companion) {
+    return into(db.batches).insert(companion);
+  }
+
+  Future<int> upsertBreedingCage(BreedingCage cage) async {
+    final existing = await (select(db.breedingCages)
+          ..where((t) => t.remoteId.equals(cage.remoteId!)))
+        .getSingleOrNull();
+    if (existing != null) {
+      await (update(db.breedingCages)..where((t) => t.id.equals(existing.id)))
+          .write(cage);
+      return existing.id;
+    }
+    return await insertBreedingCage(BreedingCagesCompanion.insert(
+      remoteId: Value(cage.remoteId),
+      cageNumber: Value(cage.cageNumber),
+      status: Value(cage.status),
+      ageDays: Value(cage.ageDays),
+      pupaLoadedKg: Value(cage.pupaLoadedKg),
+      pupaSource: Value(cage.pupaSource),
+      breedingDate: Value(cage.breedingDate),
+      lastMaintenanceDate: Value(cage.lastMaintenanceDate),
+      attractantInstalled: Value(cage.attractantInstalled),
+      waterAdded: Value(cage.waterAdded),
+      notes: Value(cage.notes),
+      createdAt: Value(cage.createdAt),
+      updatedAt: Value(cage.updatedAt),
+    ));
+  }
+
+  Future<int> insertBreedingCage(BreedingCagesCompanion companion) {
+    return into(db.breedingCages).insert(companion);
+  }
 
   Future<int> upsertFeeding(Feeding feeding) async {
     final existing = await (select(db.feedings)
