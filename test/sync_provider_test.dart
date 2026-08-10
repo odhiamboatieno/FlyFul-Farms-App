@@ -118,4 +118,15 @@ void main() {
   test('pendingCount starts at zero', () async {
     expect(provider.pendingCount, 0);
   });
+
+  test('syncNow runs the data refresh callback', () async {
+    var refreshed = 0;
+    provider = SyncProvider(db.syncDao, controller, refreshData: () async {
+      refreshed++;
+    });
+
+    await provider.syncNow();
+
+    expect(refreshed, 1);
+  });
 }

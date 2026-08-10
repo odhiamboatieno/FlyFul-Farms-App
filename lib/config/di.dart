@@ -43,11 +43,11 @@ Future<void> initDI() async {
     () => AuthProvider(getIt<AuthService>()),
   );
 
-  getIt.registerFactory<BatchProvider>(
+  getIt.registerLazySingleton<BatchProvider>(
     () => BatchProvider(getIt<AppDatabase>().batchDao, getIt<AppDatabase>().syncDao),
   );
 
-  getIt.registerFactory<CageProvider>(
+  getIt.registerLazySingleton<CageProvider>(
     () => CageProvider(getIt<AppDatabase>().cageDao, getIt<AppDatabase>().syncDao),
   );
 
@@ -83,6 +83,13 @@ Future<void> initDI() async {
     () => SyncProvider(
       getIt<AppDatabase>().syncDao,
       getIt<SyncController>(),
+      refreshData: () async {
+        await getIt<BatchProvider>().loadBatches();
+        await getIt<CageProvider>().loadCages();
+        await getIt<TodayProvider>().load();
+        await getIt<FarmProvider>().load();
+        await getIt<CompareProvider>().load();
+      },
     ),
   );
 

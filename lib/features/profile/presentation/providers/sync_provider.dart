@@ -7,14 +7,18 @@ import 'package:flyful_farms/core/sync/sync_service.dart';
 class SyncProvider extends ChangeNotifier {
   final SyncDao _syncDao;
   final SyncController _controller;
+  final Future<void> Function() _refreshData;
 
   List<SyncOutboxe> _pending = [];
   bool _loading = false;
   SyncResult? _lastResult;
 
-  SyncProvider(this._syncDao, this._controller) {
+  SyncProvider(this._syncDao, this._controller, {Future<void> Function()? refreshData})
+      : _refreshData = refreshData ?? _noop {
     _controller.addListener(notifyListeners);
   }
+
+  static Future<void> _noop() async {}
 
   List<SyncOutboxe> get pendingOperations => _pending;
   int get pendingCount => _pending.length;
@@ -41,6 +45,7 @@ class SyncProvider extends ChangeNotifier {
   Future<void> syncNow() async {
     _lastResult = await _controller.syncNow();
     await loadPending();
+    await _refreshData();
   }
 
   @override
