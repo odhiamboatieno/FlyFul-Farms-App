@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/features/breeding/presentation/providers/cage_provider.dart';
 import 'package:flyful_farms/features/records/presentation/providers/record_provider.dart';
@@ -45,7 +46,7 @@ class _CageDetailPageState extends State<CageDetailPage> {
                 ? null
                 : () => _confirmDelete(context, cage), onEdit: cage == null
                 ? null
-                : () => Navigator.pushNamed(context, '/cages/${widget.id}/edit')),
+                : () => context.push('/cages/${widget.id}/edit')),
             if (cage != null) ...[
               const SizedBox(height: 16),
               _buildInfoCard(cage),
@@ -242,14 +243,14 @@ class _CageDetailPageState extends State<CageDetailPage> {
     if (confirmed == true && context.mounted) {
       await context.read<CageProvider>().deleteCage(widget.id);
       if (context.mounted) {
-        Navigator.pop(context);
+        context.pop();
       }
     }
   }
 
   Widget _buildPageHeader(BuildContext context, String title, String subtitle, {VoidCallback? onDelete, VoidCallback? onEdit}) {
     return Row(children: [
-      GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
+      GestureDetector(onTap: () => context.pop(), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
       const SizedBox(width: 8),
       Expanded(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

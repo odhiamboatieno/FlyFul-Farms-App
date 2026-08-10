@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/features/batches/presentation/providers/batch_provider.dart';
 import 'package:provider/provider.dart';
@@ -49,7 +50,7 @@ class _CreateBatchPageState extends State<CreateBatchPage> {
         neonatesAdded: neonates,
       );
       if (!mounted) return;
-      Navigator.pushNamed(context, '/success');
+      context.push('/success');
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -107,7 +108,7 @@ class _CreateBatchPageState extends State<CreateBatchPage> {
 
   Widget _buildPageHeader(BuildContext context, String title, String subtitle) {
     return Row(children: [
-      GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
+      GestureDetector(onTap: () => context.pop(), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
       const SizedBox(width: 8),
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         OutfitText(text: title, fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink),

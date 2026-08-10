@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/shared/widgets/bottom_nav.dart';
 import 'package:flyful_farms/features/batches/presentation/providers/batch_provider.dart';
@@ -46,7 +47,7 @@ class _BatchDetailPageState extends State<BatchDetailPage> {
                 ? null
                 : () => _confirmDelete(context, batch), onEdit: batch == null
                 ? null
-                : () => Navigator.pushNamed(context, '/batches/${widget.id}/edit')),
+                : () => context.push('/batches/${widget.id}/edit')),
             if (batch != null) ...[
               const SizedBox(height: 16),
               _buildInfoCard(batch),
@@ -220,14 +221,14 @@ class _BatchDetailPageState extends State<BatchDetailPage> {
     if (confirmed == true && context.mounted) {
       await context.read<BatchProvider>().deleteBatch(widget.id);
       if (context.mounted) {
-        Navigator.pop(context);
+        context.pop();
       }
     }
   }
 
   Widget _buildPageHeader(BuildContext context, String title, String subtitle, {VoidCallback? onDelete, VoidCallback? onEdit}) {
     return Row(children: [
-      GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
+      GestureDetector(onTap: () => context.pop(), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
       const SizedBox(width: 8),
       Expanded(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [

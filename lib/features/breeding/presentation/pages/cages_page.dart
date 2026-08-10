@@ -1,5 +1,6 @@
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/shared/widgets/bottom_nav.dart';
 import 'package:flyful_farms/features/breeding/presentation/providers/cage_provider.dart';
@@ -38,7 +39,7 @@ class CagesPage extends StatelessWidget {
                       style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
                   const SizedBox(height: 18),
                   ElevatedButton(
-                    onPressed: () => Navigator.pushNamed(context, '/cages/new'),
+                    onPressed: () => context.push('/cages/new'),
                     style: ElevatedButton.styleFrom(backgroundColor: AppColors.green),
                     child: const Text('New cage', style: TextStyle(color: Colors.white)),
                   ),
@@ -60,7 +61,7 @@ class CagesPage extends StatelessWidget {
                     tagColor,
                     tag,
                     hasEggTask: c.status == 'active' && !c.waterAdded,
-                    onTap: () => Navigator.pushNamed(context, '/cages/${c.id}'),
+                    onTap: () => context.push('/cages/${c.id}'),
                   ),
                 );
               }),
@@ -88,7 +89,7 @@ class CagesPage extends StatelessWidget {
 
   Widget _buildPageHeader(BuildContext context, String title, String subtitle) {
     return Row(children: [
-      GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
+      GestureDetector(onTap: () => context.pop(), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
       const SizedBox(width: 8),
       Expanded(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -97,7 +98,7 @@ class CagesPage extends StatelessWidget {
         ]),
       ),
       IconButton(
-        onPressed: () => Navigator.pushNamed(context, '/cages/new'),
+        onPressed: () => context.push('/cages/new'),
         tooltip: 'New cage',
         icon: const Icon(Icons.add, color: AppColors.green, size: 24),
       ),

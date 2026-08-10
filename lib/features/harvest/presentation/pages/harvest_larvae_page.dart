@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/core/database/app_database.dart';
 import 'package:flyful_farms/features/harvest/presentation/providers/harvest_provider.dart';
@@ -30,7 +31,7 @@ class _HarvestLarvaePageState extends State<HarvestLarvaePage> {
       return;
     }
     context.read<HarvestProvider>().setWetLarvaeKg(weight);
-    Navigator.pushNamed(context, '/harvest-frass');
+    context.push('/harvest-frass');
   }
 
   @override
@@ -148,7 +149,7 @@ class _HarvestLarvaePageState extends State<HarvestLarvaePage> {
 
   Widget _buildPageHeaderStepper(BuildContext context, String title, String subtitle, int step) {
     return Row(children: [
-      GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
+      GestureDetector(onTap: () => context.pop(), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
       const SizedBox(width: 8),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         OutfitText(text: title, fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink),

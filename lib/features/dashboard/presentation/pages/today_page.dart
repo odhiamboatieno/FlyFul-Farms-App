@@ -1,5 +1,6 @@
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/shared/widgets/bottom_nav.dart';
 import 'package:flyful_farms/features/dashboard/presentation/providers/today_provider.dart';
@@ -88,7 +89,7 @@ class _TodayPageState extends State<TodayPage> {
             ),
             const SizedBox(width: 12),
             GestureDetector(
-              onTap: () => Navigator.pushNamed(context, '/profile'),
+              onTap: () => context.push('/profile'),
               child: Container(
                 width: 52,
                 height: 52,
@@ -167,7 +168,7 @@ class _TodayPageState extends State<TodayPage> {
 
   Widget _buildDoNowButton(TodayProvider today) {
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, '/feed-type'),
+      onTap: () => context.push('/feed-type'),
       child: Container(
         height: 88,
         padding: const EdgeInsets.all(13),
@@ -280,7 +281,7 @@ class _TodayPageState extends State<TodayPage> {
     required String route,
   }) {
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, route),
+      onTap: () => context.push(route),
       child: Container(
         height: 70,
         padding: const EdgeInsets.all(11),
@@ -357,7 +358,7 @@ class _TodayPageState extends State<TodayPage> {
     }
 
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, '/farm'),
+      onTap: () => context.push('/farm'),
       child: Container(
         height: 92,
         padding: const EdgeInsets.all(12),
@@ -475,7 +476,7 @@ class _TodayPageState extends State<TodayPage> {
     required String route,
   }) {
     return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, route),
+      onTap: () => context.push(route),
       child: Container(
         height: 138,
         padding: const EdgeInsets.all(17),

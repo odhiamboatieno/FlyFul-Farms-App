@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/core/database/app_database.dart';
 import 'package:flyful_farms/features/breeding/presentation/providers/egg_collection_provider.dart';
@@ -30,7 +31,7 @@ class _EggCollectionPageState extends State<EggCollectionPage> {
       return;
     }
     context.read<EggCollectionProvider>().setEggWeightGrams(_weightController.text.trim());
-    Navigator.pushNamed(context, '/egg-quality');
+    context.push('/egg-quality');
   }
 
   @override
@@ -127,7 +128,7 @@ class _EggCollectionPageState extends State<EggCollectionPage> {
 
   Widget _buildPageHeader(BuildContext context, String title, String subtitle) {
     return Row(children: [
-      GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
+      GestureDetector(onTap: () => context.pop(), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
       const SizedBox(width: 8),
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         OutfitText(text: title, fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink),

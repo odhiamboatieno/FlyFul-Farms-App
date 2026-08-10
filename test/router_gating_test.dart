@@ -10,6 +10,7 @@ import 'package:flyful_farms/features/auth/domain/user.dart';
 import 'package:flyful_farms/features/auth/presentation/providers/auth_provider.dart';
 import 'package:flyful_farms/features/auth/presentation/pages/login_page.dart';
 import 'package:flyful_farms/features/dashboard/presentation/pages/today_page.dart';
+import 'package:flyful_farms/features/profile/presentation/pages/profile_page.dart';
 
 class _FakeAuthService implements AuthService {
   _FakeAuthService(this.status, this.currentUser);
@@ -107,5 +108,15 @@ void main() {
     await _pumpApp(tester, AuthStatus.authenticated, user: user);
 
     expect(find.byType(TodayPage), findsOneWidget);
+  });
+
+  testWidgets('a pushed route resolves under go_router', (tester) async {
+    const user = User(id: 'uuid-1', email: 'a@b.com', firstName: 'Jane');
+    await _pumpApp(tester, AuthStatus.authenticated, user: user);
+
+    await tester.tap(find.text('J'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ProfilePage), findsOneWidget);
   });
 }

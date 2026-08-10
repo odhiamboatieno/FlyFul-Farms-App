@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/shared/widgets/bottom_nav.dart';
 import 'package:flyful_farms/features/auth/presentation/providers/auth_provider.dart';
@@ -20,7 +21,7 @@ class SettingsPage extends StatelessWidget {
               _buildPageHeader(context, 'Settings', 'Make the app easy for you'),
               const SizedBox(height: 16),
               _buildNavItem(Icons.language, 'English', 'Language follows your phone'),
-              _buildNavItem(Icons.sync, 'Sync to server', 'Upload your work when online', onTap: () => Navigator.pushNamed(context, '/sync')),
+              _buildNavItem(Icons.sync, 'Sync to server', 'Upload your work when online', onTap: () => context.push('/sync')),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () => _confirmLogout(context),
@@ -73,7 +74,7 @@ class SettingsPage extends StatelessWidget {
 
   Widget _buildPageHeader(BuildContext context, String title, String subtitle) {
     return Row(children: [
-      GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
+      GestureDetector(onTap: () => context.pop(), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
       const SizedBox(width: 8),
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         OutfitText(text: title, fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink),
@@ -84,14 +85,11 @@ class SettingsPage extends StatelessWidget {
 
   Widget _buildNavItem(IconData icon, String value, String subvalue,
       {Widget? trailing, VoidCallback? onTap}) {
-    return Container(
-      height: 47,
-      margin: const EdgeInsets.only(bottom: 7),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(5),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, 3))],
-      ),
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(5),
+      elevation: 1,
+      shadowColor: Colors.black.withValues(alpha: 0.05),
       child: ListTile(
         leading: Icon(icon, color: AppColors.green, size: 20),
         title: Text(value, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.ink)),

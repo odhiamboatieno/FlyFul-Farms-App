@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/shared/widgets/bottom_nav.dart';
 import 'package:flyful_farms/features/dashboard/presentation/providers/farm_provider.dart';
@@ -39,7 +40,7 @@ class _FarmPageState extends State<FarmPage> {
 
   Widget _buildPageHeader(BuildContext context, String title, String subtitle) {
     return Row(children: [
-      GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
+      GestureDetector(onTap: () => context.pop(), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
       const SizedBox(width: 8),
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         OutfitText(text: title, fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink),
@@ -81,7 +82,7 @@ class _FarmPageState extends State<FarmPage> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: () => Navigator.pushNamed(context, '/compare'),
+            onPressed: () => context.push('/compare'),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.white.withValues(alpha: 0.11), foregroundColor: Colors.white, padding: EdgeInsets.zero, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5))),
             child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               Text('See farm results', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
@@ -116,7 +117,7 @@ class _FarmPageState extends State<FarmPage> {
 
   Widget _buildStatRow(IconData icon, String value, String label, {bool isFrass = false, bool isEgg = false}) {
     return ElevatedButton(
-      onPressed: () => Navigator.pushNamed(context, '/stock'),
+      onPressed: () => context.push('/stock'),
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
@@ -150,7 +151,7 @@ class _FarmPageState extends State<FarmPage> {
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(5),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 12, offset: const Offset(0, 3))]),
       child: ElevatedButton(
-        onPressed: () => Navigator.pushNamed(context, route),
+        onPressed: () => context.push(route),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.transparent,
           foregroundColor: AppColors.textPrimary,

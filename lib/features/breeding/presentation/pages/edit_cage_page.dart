@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/features/breeding/presentation/providers/cage_provider.dart';
 import 'package:provider/provider.dart';
@@ -74,7 +75,7 @@ class _EditCagePageState extends State<EditCagePage> {
         notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
       );
       if (!mounted) return;
-      Navigator.pop(context, true);
+      context.pop(true);
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -136,8 +137,10 @@ class _EditCagePageState extends State<EditCagePage> {
               maxLines: 2,
             ),
             const SizedBox(height: 16),
-            Container(
-              decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(5)),
+            Material(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(5),
+              clipBehavior: Clip.antiAlias,
               child: Column(children: [
                 SwitchListTile(
                   title: const Text('Water added', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.ink)),
@@ -169,7 +172,7 @@ class _EditCagePageState extends State<EditCagePage> {
 
   Widget _buildPageHeader(BuildContext context, String title, String subtitle) {
     return Row(children: [
-      GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
+      GestureDetector(onTap: () => context.pop(), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
       const SizedBox(width: 8),
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         OutfitText(text: title, fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink),

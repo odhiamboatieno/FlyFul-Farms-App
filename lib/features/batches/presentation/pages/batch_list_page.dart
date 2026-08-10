@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/shared/widgets/bottom_nav.dart';
 import 'package:flyful_farms/features/batches/presentation/providers/batch_provider.dart';
@@ -93,7 +94,7 @@ class _BatchListPageState extends State<BatchListPage> {
                         style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
                     const SizedBox(height: 18),
                     ElevatedButton(
-                      onPressed: () => Navigator.pushNamed(context, '/batches/new'),
+                      onPressed: () => context.push('/batches/new'),
                       style: ElevatedButton.styleFrom(backgroundColor: AppColors.green),
                       child: const Text('New batch', style: TextStyle(color: Colors.white)),
                     ),
@@ -114,7 +115,7 @@ class _BatchListPageState extends State<BatchListPage> {
                       icon,
                       tagColor,
                       tag,
-                      onTap: () => Navigator.pushNamed(context, '/batches/${b.id}'),
+                      onTap: () => context.push('/batches/${b.id}'),
                     ),
                   );
                 }),
@@ -141,7 +142,7 @@ class _BatchListPageState extends State<BatchListPage> {
 
   Widget _buildPageHeader(BuildContext context, String title, String subtitle) {
     return Row(children: [
-      GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
+      GestureDetector(onTap: () => context.pop(), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
       const SizedBox(width: 8),
       Expanded(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -150,7 +151,7 @@ class _BatchListPageState extends State<BatchListPage> {
         ]),
       ),
       IconButton(
-        onPressed: () => Navigator.pushNamed(context, '/batches/new'),
+        onPressed: () => context.push('/batches/new'),
         tooltip: 'New batch',
         icon: const Icon(Icons.add, color: AppColors.green, size: 24),
       ),

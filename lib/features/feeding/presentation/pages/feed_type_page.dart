@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/core/database/app_database.dart';
 import 'package:flyful_farms/features/feeding/presentation/providers/feeding_provider.dart';
@@ -64,7 +65,7 @@ class _FeedTypePageState extends State<FeedTypePage> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => Navigator.pushNamed(context, '/feed'),
+              onPressed: () => context.push('/feed'),
               child: const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
                 Icon(Icons.arrow_forward, size: 16),
                 SizedBox(width: 4),
@@ -141,7 +142,7 @@ class _FeedTypePageState extends State<FeedTypePage> {
 
   Widget _buildPageHeaderStepper(BuildContext context, String title, String subtitle) {
     return Row(children: [
-      GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
+      GestureDetector(onTap: () => context.pop(), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
       const SizedBox(width: 8),
       Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         OutfitText(text: title, fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink),

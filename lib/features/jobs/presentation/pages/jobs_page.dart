@@ -1,5 +1,6 @@
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/core/database/app_database.dart';
 import 'package:flyful_farms/shared/widgets/bottom_nav.dart';
@@ -53,7 +54,7 @@ class JobsPage extends StatelessWidget {
                 title: feedBatch == null ? 'No batch to feed' : 'Feed Batch $feedBatch',
                 subtitle: feedBatch == null ? 'Create a batch first' : 'Log feeding for this batch',
                 trailing: Icons.arrow_forward_ios,
-                onTap: () => Navigator.pushNamed(context, '/feed-type'),
+                onTap: () => context.push('/feed-type'),
               ),
               const SizedBox(height: 9),
               _buildTask(
@@ -63,7 +64,7 @@ class JobsPage extends StatelessWidget {
                 title: waterCageName == null ? 'No cage yet' : 'Add water · Cage $waterCageName',
                 subtitle: waterCageName == null ? 'Create a cage first' : 'Cages need fresh water daily',
                 trailing: Icons.arrow_forward_ios,
-                onTap: () => Navigator.pushNamed(context, '/cages'),
+                onTap: () => context.push('/cages'),
               ),
               const SizedBox(height: 9),
               _buildTask(
@@ -74,7 +75,7 @@ class JobsPage extends StatelessWidget {
                 subtitle: harvestBatch == null ? 'Create a batch first' : 'Log larvae, frass and pupa',
                 trailing: Icons.arrow_forward_ios,
                 isUrgent: true,
-                onTap: () => Navigator.pushNamed(context, '/harvest-larvae'),
+                onTap: () => context.push('/harvest-larvae'),
               ),
               const SizedBox(height: 9),
               _buildTask(
@@ -84,7 +85,7 @@ class JobsPage extends StatelessWidget {
                 title: eggCageName == null ? 'No cage yet' : 'Collect eggs · Cage $eggCageName',
                 subtitle: eggCageName == null ? 'Create a cage first' : 'Weigh today’s eggs',
                 trailing: Icons.arrow_forward_ios,
-                onTap: () => Navigator.pushNamed(context, '/eggs'),
+                onTap: () => context.push('/eggs'),
               ),
             ],
           ),
@@ -98,7 +99,7 @@ class JobsPage extends StatelessWidget {
     return Row(
       children: [
         GestureDetector(
-          onTap: () => Navigator.pop(context),
+          onTap: () => context.pop(),
           child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20),
         ),
         const SizedBox(width: 8),
