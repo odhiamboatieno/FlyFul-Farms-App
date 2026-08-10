@@ -255,7 +255,7 @@ class _TodayPageState extends State<TodayPage> {
           subtitle: today.nextCageName != null
               ? '${today.nextCageName} · ${today.maintenancesToday} done today'
               : 'No cages yet',
-          route: '/cages',
+          route: '/maintenance',
         ),
         const SizedBox(height: 9),
         _buildLaterJob(
