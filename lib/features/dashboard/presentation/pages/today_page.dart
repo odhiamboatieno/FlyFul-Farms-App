@@ -134,23 +134,29 @@ class _TodayPageState extends State<TodayPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const OutfitText(
-              text: "Today’s work",
-              fontSize: 19,
-              fontWeight: FontWeight.w800,
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.pale,
-                borderRadius: BorderRadius.circular(4),
+            GestureDetector(
+              onTap: () => context.push('/jobs'),
+              child: const OutfitText(
+                text: "Today’s work",
+                fontSize: 19,
+                fontWeight: FontWeight.w800,
               ),
-              child: Text(
-                '${today.jobsToday} ${today.jobsToday == 1 ? 'job' : 'jobs'}',
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.green,
+            ),
+            GestureDetector(
+              onTap: () => context.push('/jobs'),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.pale,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '${today.jobsToday} ${today.jobsToday == 1 ? 'job' : 'jobs'}',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.green,
+                  ),
                 ),
               ),
             ),
