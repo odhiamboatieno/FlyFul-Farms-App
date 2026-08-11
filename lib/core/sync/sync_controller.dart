@@ -25,7 +25,7 @@ class SyncController extends ChangeNotifier {
     if (_connectivitySub != null) return;
     _connectivitySub = _network.onConnectivityChanged.listen((online) {
       if (online) {
-        unawaited(syncNow());
+        unawaited(syncNow().catchError((_) => const SyncResult()));
       }
     });
   }
@@ -50,7 +50,7 @@ class SyncController extends ChangeNotifier {
       return result;
     } catch (e) {
       _syncHadError = true;
-      rethrow;
+      return const SyncResult();
     } finally {
       _syncing = false;
       notifyListeners();

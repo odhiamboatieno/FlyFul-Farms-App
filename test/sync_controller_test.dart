@@ -159,4 +159,29 @@ void main() {
     controller.start();
     controller.dispose();
   });
+
+  test('start does not throw unhandled errors when sync fails', () async {
+    final controller = SyncController(
+      SyncService(
+        db.syncDao,
+        db.downloadDao,
+        storage,
+        post: (path, data) async {
+          throw Exception('network down');
+        },
+        get: (path, {queryParameters}) async {
+          throw Exception('network down');
+        },
+      ),
+      network,
+    );
+    controller.start();
+    network.emit(true);
+
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    expect(controller.hasSyncError, isTrue);
+    expect(controller.isSyncing, isFalse);
+
+    controller.dispose();
+  });
 }
