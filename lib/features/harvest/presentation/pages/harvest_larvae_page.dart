@@ -17,6 +17,16 @@ class _HarvestLarvaePageState extends State<HarvestLarvaePage> {
   final _controller = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<HarvestProvider>().reset();
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();

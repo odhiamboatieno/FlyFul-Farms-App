@@ -24,6 +24,16 @@ class _FeedTypePageState extends State<FeedTypePage> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<FeedingProvider>().reset();
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final feeding = context.watch<FeedingProvider>();
     final batches = context.watch<BatchProvider>().batches;

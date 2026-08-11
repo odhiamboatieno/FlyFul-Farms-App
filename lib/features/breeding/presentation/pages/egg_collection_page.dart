@@ -17,6 +17,16 @@ class _EggCollectionPageState extends State<EggCollectionPage> {
   final _weightController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<EggCollectionProvider>().reset();
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _weightController.dispose();
     super.dispose();
