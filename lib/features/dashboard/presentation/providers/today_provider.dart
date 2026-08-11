@@ -12,6 +12,7 @@ class TodayProvider extends ChangeNotifier {
   int _cageCount = 0;
   int _feedingsToday = 0;
   int _harvestsToday = 0;
+  int _eggCollectionsToday = 0;
   int _maintenancesToday = 0;
   int _harvestKgThisWeek = 0;
   int _harvestKgLastWeek = 0;
@@ -32,7 +33,8 @@ class TodayProvider extends ChangeNotifier {
   String? get nextCageName => _nextCageName;
   bool get loading => _loading;
 
-  int get jobsToday => _feedingsToday + _harvestsToday + _maintenancesToday;
+  int get jobsToday =>
+      _feedingsToday + _harvestsToday + _eggCollectionsToday + _maintenancesToday;
 
   Future<void> load() async {
     _loading = true;
@@ -47,6 +49,7 @@ class TodayProvider extends ChangeNotifier {
       final cages = await _cageDao.getAllCages();
       final feedings = await _downloadDao.allFeedings();
       final harvests = await _downloadDao.allHarvests();
+      final eggCollections = await _downloadDao.allEggCollections();
       final maintenances = await _downloadDao.allMaintenances();
 
       _activeBatchCount = batches.where((b) => b.status == 'active').length;
@@ -54,6 +57,9 @@ class TodayProvider extends ChangeNotifier {
 
       _feedingsToday = feedings.where((f) => !f.fedAt.isBefore(todayStart)).length;
       _harvestsToday = harvests.where((h) => !h.harvestedAt.isBefore(todayStart)).length;
+      _eggCollectionsToday = eggCollections
+          .where((e) => !e.collectedAt.isBefore(todayStart))
+          .length;
       _maintenancesToday =
           maintenances.where((m) => !m.maintenanceDate.isBefore(todayStart)).length;
 

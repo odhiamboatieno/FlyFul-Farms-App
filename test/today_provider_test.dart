@@ -46,6 +46,12 @@ void main() {
       wetLarvaeKg: 5.5,
       harvestedAt: now,
     ));
+    await db.downloadDao.insertEggCollection(EggCollectionsCompanion.insert(
+      remoteId: drift.Value('e-1'),
+      cageId: 'cage-1',
+      eggWeightGrams: drift.Value('250'),
+      collectedAt: now,
+    ));
 
     await provider.load();
 
@@ -53,7 +59,7 @@ void main() {
     expect(provider.cageCount, 1);
     expect(provider.feedingsToday, 1);
     expect(provider.harvestsToday, 1);
-    expect(provider.jobsToday, 2);
+    expect(provider.jobsToday, 3);
     expect(provider.harvestKgThisWeek, 6);
     expect(provider.nextBatchName, '001');
     expect(provider.nextCageName, 'A');
