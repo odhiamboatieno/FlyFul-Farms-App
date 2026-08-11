@@ -8,8 +8,15 @@ class WeekStat {
   const WeekStat({required this.thisWeek, required this.lastWeek});
 
   bool get improved => thisWeek > lastWeek;
-  double get percentThisWeek => thisWeek > 0 ? 1.0 : 0.0;
-  double get percentLastWeek => lastWeek > 0 && thisWeek > 0 ? (lastWeek / thisWeek).clamp(0.0, 1.0) : 0.0;
+  double get percentThisWeek {
+    final max = thisWeek > lastWeek ? thisWeek : lastWeek;
+    return max > 0 ? (thisWeek / max).clamp(0.0, 1.0) : 0.0;
+  }
+
+  double get percentLastWeek {
+    final max = thisWeek > lastWeek ? thisWeek : lastWeek;
+    return max > 0 ? (lastWeek / max).clamp(0.0, 1.0) : 0.0;
+  }
 
   String formatKg() {
     return '${thisWeek.round()} KG';
