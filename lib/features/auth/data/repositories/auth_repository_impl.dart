@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:flyful_farms/config/di.dart';
 import 'package:flyful_farms/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:flyful_farms/features/auth/data/models/user_model.dart';
 import 'package:flyful_farms/features/auth/domain/auth_service.dart';
 import 'package:flyful_farms/features/auth/domain/auth_state.dart';
+import 'package:flyful_farms/features/auth/domain/user.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthRepositoryImpl implements AuthService {
@@ -14,6 +17,7 @@ class AuthRepositoryImpl implements AuthService {
   static const String _tokenKey = 'auth_token';
   static const String _refreshTokenKey = 'auth_refresh_token';
   static const String _userIdKey = 'auth_user_id';
+  static const String _userJsonKey = 'auth_user_json';
 
   @override
   Future<UserModel?> login({
@@ -40,7 +44,9 @@ class AuthRepositoryImpl implements AuthService {
         await secureStorage.write(key: _refreshTokenKey, value: refreshToken);
       }
       apiClient.setToken(token);
-      return UserModel.fromJson(userJson);
+      final user = UserModel.fromJson(userJson);
+      await _cacheUser(user);
+      return user;
     }
     return null;
   }
@@ -81,7 +87,9 @@ class AuthRepositoryImpl implements AuthService {
         await secureStorage.write(key: _refreshTokenKey, value: refreshToken);
       }
       apiClient.setToken(token);
-      return UserModel.fromJson(userJson);
+      final user = UserModel.fromJson(userJson);
+      await _cacheUser(user);
+      return user;
     }
     return null;
   }
@@ -112,7 +120,23 @@ class AuthRepositoryImpl implements AuthService {
     await secureStorage.delete(key: _tokenKey);
     await secureStorage.delete(key: _refreshTokenKey);
     await secureStorage.delete(key: _userIdKey);
+    await secureStorage.delete(key: _userJsonKey);
     apiClient.clearToken();
+  }
+
+  Future<void> _cacheUser(User user) async {
+    await secureStorage.write(key: _userJsonKey, value: jsonEncode(user.toJson()));
+  }
+
+  Future<User?> _cachedUser() async {
+    final raw = await secureStorage.read(key: _userJsonKey);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      final json = jsonDecode(raw) as Map<String, dynamic>;
+      return User.fromJson(json);
+    } catch (_) {
+      return null;
+    }
   }
 
   @override
@@ -121,8 +145,27 @@ class AuthRepositoryImpl implements AuthService {
     if (token == null) return null;
     apiClient.setToken(token);
     try {
-      return await remoteDataSource.getCurrentUser();
+      final user = await remoteDataSource.getCurrentUser();
+      await _cacheUser(user);
+      return user;
     } catch (e) {
+      final cached = await _cachedUser();
+      if (cached != null) {
+        return UserModel(
+          id: cached.id,
+          email: cached.email,
+          phone: cached.phone,
+          firstName: cached.firstName,
+          lastName: cached.lastName,
+          role: cached.role,
+          village: cached.village,
+          county: cached.county,
+          avatar: cached.avatar,
+          isActive: cached.isActive,
+          createdAt: cached.createdAt,
+          updatedAt: cached.updatedAt,
+        );
+      }
       return null;
     }
   }
@@ -167,9 +210,11 @@ class AuthRepositoryImpl implements AuthService {
     if (data.isEmpty) return await getCurrentUser();
 
     try {
-      return await remoteDataSource.updateProfile(data);
+      final user = await remoteDataSource.updateProfile(data);
+      await _cacheUser(user);
+      return user;
     } catch (e) {
-      return null;
+      return await getCurrentUser();
     }
   }
 }
