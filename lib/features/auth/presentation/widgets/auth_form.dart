@@ -113,14 +113,13 @@ class _AuthFormState extends State<AuthForm> {
             ),
             obscureText: _obscurePassword,
             keyboardType: TextInputType.visiblePassword,
-            validator: widget.isLogin
-                ? (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  }
-                : null,
+            validator: (value) {
+              if (widget.isLogin && _pinController.text.trim().isEmpty &&
+                  (value == null || value.isEmpty)) {
+                return 'Enter a password or PIN';
+              }
+              return null;
+            },
           ),
           const SizedBox(height: 16),
           TextFormField(
@@ -143,8 +142,18 @@ class _AuthFormState extends State<AuthForm> {
             keyboardType: TextInputType.number,
             maxLength: 4,
             validator: (value) {
-              if (value == null || value.length < 4) {
-                return 'Please enter a 4-digit PIN';
+              final trimmed = value?.trim() ?? '';
+              if (trimmed.isEmpty) {
+                if (_passwordController.text.isEmpty && !widget.isLogin) {
+                  return 'Enter a password or PIN';
+                }
+                if (widget.isLogin && _passwordController.text.isEmpty) {
+                  return null; // error already shown on the password field
+                }
+                return null;
+              }
+              if (trimmed.length != 4) {
+                return 'Enter a 4-digit PIN';
               }
               return null;
             },
