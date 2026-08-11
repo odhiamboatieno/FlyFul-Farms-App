@@ -90,6 +90,7 @@ void main() {
 
   test('syncNow runs the underlying service and records timestamp', () async {
     callCount = 0;
+    await storage.write('sync_farm_id', 'farm-1');
     await db.syncDao.insertSyncOperation(
       SyncOutboxesCompanion.insert(
         operationId: 'op-1',
@@ -111,6 +112,7 @@ void main() {
 
   test('start triggers sync when connectivity comes back online', () async {
     callCount = 0;
+    await storage.write('sync_farm_id', 'farm-1');
     await db.syncDao.insertSyncOperation(
       SyncOutboxesCompanion.insert(
         operationId: 'op-2',

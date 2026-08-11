@@ -102,8 +102,13 @@ class SyncService {
         payload = <String, dynamic>{};
       }
 
-      if ((op.entityType == 'batch' || op.entityType == 'breeding_cage') &&
-          farm != null) {
+      if (op.entityType == 'batch' || op.entityType == 'breeding_cage') {
+        if (farm == null) {
+          // Batches and cages require a farm on the server. Without one the
+          // create would 500 on a foreign-key constraint, so leave the op
+          // pending and retry once a farm is available.
+          continue;
+        }
         payload['farmId'] = farm;
       }
 
@@ -116,6 +121,10 @@ class SyncService {
         'payload': payload,
         'occurredAt': op.createdAt.toIso8601String(),
       });
+    }
+
+    if (operations.isEmpty) {
+      return const SyncResult();
     }
 
     final response = await upload(

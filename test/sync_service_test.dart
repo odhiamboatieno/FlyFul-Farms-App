@@ -75,6 +75,45 @@ void main() {
     expect(result.failed, 0);
   });
 
+  test('batch create without a farm stays pending instead of failing', () async {
+    var uploadCalled = false;
+    final sync = SyncService(
+      db.syncDao,
+      db.downloadDao,
+      storage,
+      post: (path, data) async {
+        uploadCalled = true;
+        return {
+          'status': 'success',
+          'data': {'processed': 0, 'conflictCount': 0, 'results': <dynamic>[], 'conflicts': <dynamic>[]},
+        };
+      },
+      get: (path, {queryParameters}) async => {
+        'status': 'success',
+        'data': <dynamic>[],
+      },
+    );
+
+    await db.syncDao.insertSyncOperation(
+      SyncOutboxesCompanion.insert(
+        operationId: 'op-no-farm',
+        entityType: 'batch',
+        entityId: drift.Value('e2e4d1a5-0000-0000-0000-000000000099'),
+        operation: drift.Value('create'),
+        payload: drift.Value('{"batchNumber":"B-1"}'),
+      ),
+    );
+
+    final result = await sync.syncNow();
+
+    expect(uploadCalled, isFalse);
+    expect(result.processed, 0);
+    expect(result.failed, 0);
+    final pending = await db.syncDao.getPendingOperations();
+    expect(pending, hasLength(1));
+    expect(pending.single.operationId, 'op-no-farm');
+  });
+
   test('syncNow posts operation matching server contract and drains outbox', () async {
     late Map<String, dynamic> lastBody;
     final remoteId = '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d';
@@ -116,6 +155,8 @@ void main() {
         ),
       ),
     );
+
+    await storage.write('sync_farm_id', 'farm-1');
 
     final result = await sync.syncNow();
     expect(result.processed, 1);
@@ -161,6 +202,7 @@ void main() {
 
   test('syncNow marks failed ops as failed', () async {
     final sync = buildService(succeed: false);
+    await storage.write('sync_farm_id', 'farm-1');
 
     await db.syncDao.insertSyncOperation(
       SyncOutboxesCompanion.insert(
