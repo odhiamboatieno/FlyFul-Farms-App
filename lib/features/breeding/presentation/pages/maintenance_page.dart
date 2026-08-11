@@ -29,7 +29,17 @@ class _MaintenancePageState extends State<MaintenancePage> {
   Future<void> _save() async {
     if (_saving) return;
     setState(() => _saving = true);
-    final ok = await context.read<MaintenanceProvider>().saveMaintenance();
+    final maintenance = context.read<MaintenanceProvider>();
+    final cageProvider = context.read<CageProvider>();
+    final wasWaterChanged = maintenance.waterChanged;
+    final cageRemoteId = maintenance.draftCageId;
+    final ok = await maintenance.saveMaintenance();
+    if (ok && wasWaterChanged) {
+      final cage = cageProvider.cageByRemoteId(cageRemoteId);
+      if (cage != null) {
+        await cageProvider.updateCage(cage.id, waterAdded: true);
+      }
+    }
     if (!mounted) return;
     setState(() => _saving = false);
     if (ok) {

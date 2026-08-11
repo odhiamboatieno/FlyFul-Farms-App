@@ -42,6 +42,14 @@ class CageProvider extends ChangeNotifier {
     return null;
   }
 
+  BreedingCage? cageByRemoteId(String? remoteId) {
+    if (remoteId == null) return null;
+    for (final c in _cages) {
+      if (c.remoteId == remoteId) return c;
+    }
+    return null;
+  }
+
   Future<void> createCage({
     required String cageNumber,
     String status = 'active',
