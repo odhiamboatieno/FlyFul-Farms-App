@@ -25,7 +25,6 @@ import 'package:flyful_farms/features/feeding/presentation/pages/feed_photo_page
 import 'package:flyful_farms/features/harvest/presentation/pages/harvest_larvae_page.dart';
 import 'package:flyful_farms/features/harvest/presentation/pages/harvest_frass_page.dart';
 import 'package:flyful_farms/features/harvest/presentation/pages/harvest_pupa_page.dart';
-import 'package:flyful_farms/features/reports/presentation/pages/reports_page.dart';
 import 'package:flyful_farms/features/reports/presentation/pages/compare_page.dart';
 import 'package:flyful_farms/features/reports/presentation/pages/stock_page.dart';
 import 'package:flyful_farms/features/profile/presentation/pages/profile_page.dart';
@@ -90,7 +89,6 @@ class AppRouter {
       GoRoute(path: '/harvest-larvae', builder: (context, state) => const HarvestLarvaePage()),
       GoRoute(path: '/harvest-frass', builder: (context, state) => const HarvestFrassPage()),
       GoRoute(path: '/harvest-pupa', builder: (context, state) => const HarvestPupaPage()),
-      GoRoute(path: '/reports', builder: (context, state) => const ReportsPage()),
       GoRoute(path: '/stock', builder: (context, state) => const StockPage()),
       GoRoute(path: '/compare', builder: (context, state) => const ComparePage()),
       GoRoute(path: '/farm', builder: (context, state) => const FarmPage()),
