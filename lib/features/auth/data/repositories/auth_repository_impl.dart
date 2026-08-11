@@ -214,7 +214,7 @@ class AuthRepositoryImpl implements AuthService {
       await _cacheUser(user);
       return user;
     } catch (e) {
-      return await getCurrentUser();
+      return null;
     }
   }
 }
