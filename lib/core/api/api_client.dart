@@ -66,7 +66,13 @@ class _AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
-    if (err.response?.statusCode == 401) {
+    // Only treat a 401 as an expired session when the request was actually
+    // authenticated. Public endpoints (login, register, forgot-password)
+    // legitimately return 401 for bad credentials and must not wipe a valid
+    // stored token.
+    final sentAuthHeader =
+        err.requestOptions.headers['Authorization']?.toString() ?? '';
+    if (err.response?.statusCode == 401 && sentAuthHeader.startsWith('Bearer ')) {
       await _storage.delete(key: 'auth_token');
       await _storage.delete(key: 'auth_refresh_token');
     }
