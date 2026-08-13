@@ -217,7 +217,9 @@ void main() {
     expect(result.failed, 1);
 
     final pending = await db.syncDao.getPendingOperations();
-    expect(pending, isEmpty);
+    expect(pending, hasLength(1));
+    expect(pending.single.status, 'failed');
+    expect(pending.single.retryCount, 1);
   });
 
   test('syncDownload applies server changes to local tables', () async {

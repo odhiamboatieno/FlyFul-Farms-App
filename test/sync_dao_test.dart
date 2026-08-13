@@ -20,12 +20,14 @@ void main() {
     String? operationId,
     String entityType = 'batch',
     String status = 'pending',
+    int retryCount = 0,
   }) {
     return dao.insertSyncOperation(
       SyncOutboxesCompanion.insert(
         operationId: operationId ?? 'op-${DateTime.now().microsecondsSinceEpoch}',
         entityType: entityType,
         status: Value(status),
+        retryCount: Value(retryCount),
       ),
     );
   }
@@ -35,14 +37,16 @@ void main() {
     expect(id, greaterThan(0));
   });
 
-  test('getPendingOperations returns only pending operations', () async {
+  test('getPendingOperations returns pending and retryable failed operations', () async {
     await insertOp(status: 'pending');
     await insertOp(status: 'completed');
-    await insertOp(status: 'failed');
+    await insertOp(status: 'failed', retryCount: 2);
+    await insertOp(status: 'failed', retryCount: 5);
 
     final pending = await dao.getPendingOperations();
-    expect(pending, hasLength(1));
-    expect(pending.single.status, 'pending');
+    expect(pending, hasLength(2));
+    expect(pending.map((op) => op.status).toSet(), {'pending', 'failed'});
+    expect(pending.any((op) => op.retryCount == 5), isFalse);
   });
 
   test('getPendingOperations orders by newest first', () async {

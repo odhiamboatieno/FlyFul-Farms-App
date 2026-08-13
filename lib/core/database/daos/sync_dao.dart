@@ -12,7 +12,8 @@ class SyncDao extends DatabaseAccessor<AppDatabase> {
 
   Future<List<SyncOutboxe>> getPendingOperations() async {
     return await (select(db.syncOutboxes)
-          ..where((t) => t.status.equals('pending'))
+          ..where((t) => t.status.equals('pending') |
+              (t.status.equals('failed') & t.retryCount.isSmallerThanValue(5)))
           ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
         .get();
   }
