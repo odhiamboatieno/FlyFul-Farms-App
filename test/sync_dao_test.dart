@@ -49,7 +49,7 @@ void main() {
     expect(pending.any((op) => op.retryCount == 5), isFalse);
   });
 
-  test('getPendingOperations orders by newest first', () async {
+  test('getPendingOperations orders oldest first (FIFO)', () async {
     await dao.insertSyncOperation(
       SyncOutboxesCompanion.insert(
         operationId: 'op-first',
@@ -67,7 +67,8 @@ void main() {
 
     final pending = await dao.getPendingOperations();
     expect(pending, hasLength(2));
-    expect(pending.first.entityType, 'second');
+    expect(pending.first.entityType, 'first');
+    expect(pending.last.entityType, 'second');
   });
 
   test('markAsComplete flips status and timestamp', () async {

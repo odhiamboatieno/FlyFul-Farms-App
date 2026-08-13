@@ -11,10 +11,12 @@ class SyncDao extends DatabaseAccessor<AppDatabase> {
   SyncDao(this.db) : super(db);
 
   Future<List<SyncOutboxe>> getPendingOperations() async {
+    // FIFO: upload oldest first so parent entities (batch, cage) sync before
+    // the records that reference them.
     return await (select(db.syncOutboxes)
           ..where((t) => t.status.equals('pending') |
               (t.status.equals('failed') & t.retryCount.isSmallerThanValue(5)))
-          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
         .get();
   }
 
