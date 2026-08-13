@@ -200,6 +200,18 @@ void main() {
     expect(storage.store, containsPair('sync_device_id', first));
   });
 
+  test('clearFarmId forgets the cached farm', () async {
+    final sync = buildService(farms: [
+      {'id': 'farm-1', 'name': 'Flyful Farm'},
+    ]);
+    await sync.farmId();
+    expect(storage.store, containsPair('sync_farm_id', 'farm-1'));
+
+    await sync.clearFarmId();
+
+    expect(storage.store['sync_farm_id'], isEmpty);
+  });
+
   test('syncNow marks failed ops as failed', () async {
     final sync = buildService(succeed: false);
     await storage.write('sync_farm_id', 'farm-1');

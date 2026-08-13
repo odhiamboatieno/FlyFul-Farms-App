@@ -84,6 +84,12 @@ class SyncService {
     return null;
   }
 
+  /// Forget the cached farm when the account changes, so a new sign-in does
+  /// not sync into the previous user's farm.
+  Future<void> clearFarmId() async {
+    await _storage.write(_farmIdKey, '');
+  }
+
   Future<SyncResult> syncNow() async {
     final pending = await _syncDao.getPendingOperations();
     if (pending.isEmpty) {

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flyful_farms/config/di.dart';
+import 'package:flyful_farms/core/sync/sync_service.dart';
 import 'package:flyful_farms/features/auth/domain/auth_service.dart';
 import 'package:flyful_farms/features/auth/domain/auth_state.dart';
 import 'package:flyful_farms/features/auth/domain/user.dart';
@@ -124,6 +126,11 @@ class AuthProvider with ChangeNotifier {
       await _authService.logout();
     } catch (_) {
       // Signing out must always succeed locally even if the remote call fails.
+    }
+    try {
+      await getIt<SyncService>().clearFarmId();
+    } catch (_) {
+      // Clearing the cached farm is best-effort; a failed clear is harmless.
     }
     _user = null;
     _status = AuthStatus.unauthenticated;
