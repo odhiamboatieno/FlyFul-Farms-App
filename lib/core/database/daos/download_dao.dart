@@ -181,6 +181,38 @@ class DownloadDao extends DatabaseAccessor<AppDatabase> {
   Future<int> deleteHarvest(int id) => (delete(db.harvests)..where((t) => t.id.equals(id))).go();
   Future<int> deleteEggCollection(int id) => (delete(db.eggCollections)..where((t) => t.id.equals(id))).go();
   Future<int> deleteMaintenance(int id) => (delete(db.cageMaintenances)..where((t) => t.id.equals(id))).go();
+  Future<int> deleteBatch(int id) => (delete(db.batches)..where((t) => t.id.equals(id))).go();
+  Future<int> deleteCage(int id) => (delete(db.breedingCages)..where((t) => t.id.equals(id))).go();
+
+  Future<int?> batchIdByRemoteId(String remoteId) async {
+    final rows = await (select(db.batches)..where((t) => t.remoteId.equals(remoteId))).get();
+    return rows.isEmpty ? null : rows.first.id;
+  }
+
+  Future<int?> cageIdByRemoteId(String remoteId) async {
+    final rows = await (select(db.breedingCages)..where((t) => t.remoteId.equals(remoteId))).get();
+    return rows.isEmpty ? null : rows.first.id;
+  }
+
+  Future<int?> feedingIdByRemoteId(String remoteId) async {
+    final rows = await (select(db.feedings)..where((t) => t.remoteId.equals(remoteId))).get();
+    return rows.isEmpty ? null : rows.first.id;
+  }
+
+  Future<int?> harvestIdByRemoteId(String remoteId) async {
+    final rows = await (select(db.harvests)..where((t) => t.remoteId.equals(remoteId))).get();
+    return rows.isEmpty ? null : rows.first.id;
+  }
+
+  Future<int?> eggCollectionIdByRemoteId(String remoteId) async {
+    final rows = await (select(db.eggCollections)..where((t) => t.remoteId.equals(remoteId))).get();
+    return rows.isEmpty ? null : rows.first.id;
+  }
+
+  Future<int?> maintenanceIdByRemoteId(String remoteId) async {
+    final rows = await (select(db.cageMaintenances)..where((t) => t.remoteId.equals(remoteId))).get();
+    return rows.isEmpty ? null : rows.first.id;
+  }
 
   Future<List<Feeding>> feedingsForBatch(String batchId) {
     return (select(db.feedings)

@@ -57,6 +57,14 @@ class SyncController extends ChangeNotifier {
     }
   }
 
+  Future<List<Map<String, dynamic>>> fetchConflicts() {
+    return _syncService.fetchConflicts();
+  }
+
+  Future<bool> resolveConflict(String conflictId, String resolution) {
+    return _syncService.resolveConflict(conflictId, resolution);
+  }
+
   @override
   void dispose() {
     _connectivitySub?.cancel();

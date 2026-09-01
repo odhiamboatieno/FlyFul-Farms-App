@@ -10,6 +10,7 @@ class SyncProvider extends ChangeNotifier {
   final Future<void> Function() _refreshData;
 
   List<SyncOutboxe> _pending = [];
+  List<Map<String, dynamic>> _conflicts = [];
   bool _loading = false;
   SyncResult? _lastResult;
 
@@ -22,6 +23,8 @@ class SyncProvider extends ChangeNotifier {
 
   List<SyncOutboxe> get pendingOperations => _pending;
   int get pendingCount => _pending.length;
+  List<Map<String, dynamic>> get conflicts => _conflicts;
+  bool get hasConflicts => _conflicts.isNotEmpty;
   bool get loading => _loading;
   bool get isSyncing => _controller.isSyncing;
   DateTime? get lastSyncedAt => _controller.lastSyncedAt;
@@ -42,9 +45,28 @@ class SyncProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> loadConflicts() async {
+    try {
+      _conflicts = await _controller.fetchConflicts();
+    } catch (_) {
+      _conflicts = [];
+    }
+    notifyListeners();
+  }
+
+  Future<bool> resolveConflict(String conflictId, String resolution) async {
+    final ok = await _controller.resolveConflict(conflictId, resolution);
+    if (ok) {
+      await loadConflicts();
+      await loadPending();
+    }
+    return ok;
+  }
+
   Future<void> syncNow() async {
     _lastResult = await _controller.syncNow();
     await loadPending();
+    await loadConflicts();
     await _refreshData();
   }
 

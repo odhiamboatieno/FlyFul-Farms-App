@@ -364,4 +364,106 @@ void main() {
     expect(requestedSinces.first, startsWith('1970-'));
     expect(storage.store['sync_last_download'], '2026-08-10T12:00:00.000Z');
   });
+
+  test('syncDownload applies delete tombstones locally', () async {
+    await db.downloadDao.upsertBatch(Batche(
+      id: 0,
+      remoteId: 'b1',
+      batchNumber: 'B-1',
+      farmerId: '',
+      farmerName: '',
+      wasteType: 'mixed',
+      wasteQuantityKg: 10,
+      neonatesAdded: 0,
+      status: 'active',
+      dayNumber: 1,
+      startDate: '2026-08-01T00:00:00.000Z',
+      expectedHarvestDate: '',
+      createdAt: DateTime(2026, 8, 1),
+      updatedAt: DateTime(2026, 8, 1),
+    ));
+    await db.downloadDao.upsertBreedingCage(BreedingCage(
+      id: 0,
+      remoteId: 'c1',
+      cageNumber: 'C-1',
+      farmerId: '',
+      status: 'active',
+      ageDays: 1,
+      pupaLoadedKg: 0,
+      attractantInstalled: false,
+      waterAdded: false,
+      createdAt: DateTime(2026, 8, 1),
+      updatedAt: DateTime(2026, 8, 1),
+    ));
+
+    final sync = buildService(download: {
+      'status': 'success',
+      'data': {
+        'changes': [
+          {
+            'entityType': 'batch',
+            'entityId': 'b1',
+            'operation': 'delete',
+            'payload': {'id': 'b1'},
+          },
+          {
+            'entityType': 'breeding_cage',
+            'entityId': 'c1',
+            'operation': 'delete',
+            'payload': {'id': 'c1'},
+          },
+        ],
+        'count': 2,
+        'since': '2026-08-10T00:00:00.000Z',
+      },
+    });
+
+    final applied = await sync.syncDownload();
+
+    expect(applied, 2);
+    expect(await db.batchDao.getAllBatches(), isEmpty);
+    expect(await db.cageDao.getAllCages(), isEmpty);
+  });
+
+  test('fetchConflicts returns the server conflict list', () async {
+    final sync = SyncService(
+      db.syncDao,
+      db.downloadDao,
+      storage,
+      post: (path, data) async => {'status': 'success', 'data': <dynamic>[]},
+      get: (path, {queryParameters}) async => {
+        'status': 'success',
+        'data': [
+          {'id': 'conf-1', 'entityType': 'batch', 'reason': 'Entity changed'},
+        ],
+      },
+    );
+
+    final conflicts = await sync.fetchConflicts();
+
+    expect(conflicts, hasLength(1));
+    expect(conflicts.single['id'], 'conf-1');
+  });
+
+  test('resolveConflict posts the resolution and returns success', () async {
+    String? postedPath;
+    late Map<String, dynamic> postedBody;
+    final sync = SyncService(
+      db.syncDao,
+      db.downloadDao,
+      storage,
+      post: (path, data) async {
+        postedPath = path;
+        postedBody = data;
+        return {'status': 'success', 'data': <dynamic>[]};
+      },
+      get: (path, {queryParameters}) async => {'status': 'success', 'data': <dynamic>[]},
+    );
+
+    final ok = await sync.resolveConflict('conf-1', 'client_wins');
+
+    expect(ok, isTrue);
+    expect(postedPath, '/sync/conflicts/conf-1/resolve');
+    expect(postedBody, {'resolution': 'client_wins'});
+  });
 }

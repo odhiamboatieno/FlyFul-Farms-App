@@ -79,6 +79,23 @@ class SyncPage extends StatelessWidget {
               )
             else
               ...sync.pendingOperations.map((op) => _PendingItem(op: op)),
+            const SizedBox(height: 24),
+            Text(sync.hasConflicts ? 'Conflicts' : 'Nothing needs your attention',
+                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppColors.ink)),
+            const SizedBox(height: 10),
+            if (sync.hasConflicts)
+              ...sync.conflicts.map((c) => _ConflictItem(conflict: c))
+            else
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(5),
+                  border: Border.all(color: AppColors.orangebg),
+                ),
+                child: const Text('No sync conflicts right now.',
+                    style: TextStyle(fontSize: 13, color: AppColors.textSecondary)),
+              ),
           ]),
         ),
       ),
@@ -180,5 +197,79 @@ class _PendingItem extends StatelessWidget {
       default:
         return '$action record';
     }
+  }
+}
+
+class _ConflictItem extends StatelessWidget {
+  final Map<String, dynamic> conflict;
+  const _ConflictItem({required this.conflict});
+
+  @override
+  Widget build(BuildContext context) {
+    final entityType = conflict['entityType']?.toString() ?? 'record';
+    final reason = conflict['reason']?.toString() ?? 'This record was changed on another device.';
+    final conflictId = conflict['id']?.toString() ?? '';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(13),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(color: AppColors.orangebg),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          const Icon(Icons.warning_amber, color: AppColors.orange, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Conflict · $entityType',
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.ink),
+            ),
+          ),
+        ]),
+        const SizedBox(height: 6),
+        Text(reason, style: const TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+        const SizedBox(height: 10),
+        Row(children: [
+          Expanded(
+            child: OutlinedButton(
+              onPressed: conflictId.isEmpty
+                  ? null
+                  : () => _resolve(context, conflictId, 'server_wins'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.textSecondary,
+                side: const BorderSide(color: AppColors.border),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+              ),
+              child: const Text('Keep server'),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: ElevatedButton(
+              onPressed: conflictId.isEmpty
+                  ? null
+                  : () => _resolve(context, conflictId, 'client_wins'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.green,
+                padding: const EdgeInsets.symmetric(vertical: 10),
+              ),
+              child: const Text('Keep mine', style: TextStyle(color: Colors.white)),
+            ),
+          ),
+        ]),
+      ]),
+    );
+  }
+
+  Future<void> _resolve(BuildContext context, String conflictId, String resolution) async {
+    final sync = context.read<SyncProvider>();
+    final ok = await sync.resolveConflict(conflictId, resolution);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(ok ? 'Conflict resolved' : 'Could not resolve the conflict.')),
+    );
   }
 }

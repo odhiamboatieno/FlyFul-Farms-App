@@ -188,8 +188,23 @@ class SyncService {
       final entityType = item['entityType']?.toString();
       final payload = item['payload'] as Map<String, dynamic>? ?? {};
       final remoteId = payload['id']?.toString();
+      final operation = item['operation']?.toString() ?? 'create';
 
       if (remoteId == null || remoteId.isEmpty) continue;
+
+      if (operation == 'delete') {
+        final removed = switch (entityType) {
+          'batch' => await _deleteBatchByRemoteId(remoteId),
+          'breeding_cage' => await _deleteCageByRemoteId(remoteId),
+          'feeding' => await _deleteFeedingByRemoteId(remoteId),
+          'harvest' => await _deleteHarvestByRemoteId(remoteId),
+          'egg_collection' => await _deleteEggCollectionByRemoteId(remoteId),
+          'cage_maintenance' => await _deleteMaintenanceByRemoteId(remoteId),
+          _ => false,
+        };
+        if (removed) applied++;
+        continue;
+      }
 
       final handled = switch (entityType) {
         'batch' => await _upsertBatch(remoteId, payload),
@@ -208,6 +223,71 @@ class SyncService {
     }
 
     return applied;
+  }
+
+  /// Fetch unresolved sync conflicts from the server.
+  Future<List<Map<String, dynamic>>> fetchConflicts() async {
+    try {
+      final response = await fetch(ApiEndpoints.syncConflicts);
+      final data = response['data'];
+      if (data is List) {
+        return data.cast<Map<String, dynamic>>();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  /// Resolve a sync conflict. `resolution` is 'client_wins' or 'server_wins'.
+  Future<bool> resolveConflict(String conflictId, String resolution) async {
+    try {
+      final path = '${ApiEndpoints.syncConflicts}/$conflictId/resolve';
+      await upload(path, {'resolution': resolution});
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> _deleteBatchByRemoteId(String remoteId) async {
+    final id = await _downloadDao.batchIdByRemoteId(remoteId);
+    if (id == null) return false;
+    await _downloadDao.deleteBatch(id);
+    return true;
+  }
+
+  Future<bool> _deleteCageByRemoteId(String remoteId) async {
+    final id = await _downloadDao.cageIdByRemoteId(remoteId);
+    if (id == null) return false;
+    await _downloadDao.deleteCage(id);
+    return true;
+  }
+
+  Future<bool> _deleteFeedingByRemoteId(String remoteId) async {
+    final id = await _downloadDao.feedingIdByRemoteId(remoteId);
+    if (id == null) return false;
+    await _downloadDao.deleteFeeding(id);
+    return true;
+  }
+
+  Future<bool> _deleteHarvestByRemoteId(String remoteId) async {
+    final id = await _downloadDao.harvestIdByRemoteId(remoteId);
+    if (id == null) return false;
+    await _downloadDao.deleteHarvest(id);
+    return true;
+  }
+
+  Future<bool> _deleteEggCollectionByRemoteId(String remoteId) async {
+    final id = await _downloadDao.eggCollectionIdByRemoteId(remoteId);
+    if (id == null) return false;
+    await _downloadDao.deleteEggCollection(id);
+    return true;
+  }
+
+  Future<bool> _deleteMaintenanceByRemoteId(String remoteId) async {
+    final id = await _downloadDao.maintenanceIdByRemoteId(remoteId);
+    if (id == null) return false;
+    await _downloadDao.deleteMaintenance(id);
+    return true;
   }
 
   Future<bool> _upsertBatch(String remoteId, Map<String, dynamic> p) async {

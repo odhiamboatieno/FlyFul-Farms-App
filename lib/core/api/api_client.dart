@@ -52,12 +52,25 @@ class ApiClient {
 
 class _AuthInterceptor extends Interceptor {
   final FlutterSecureStorage _storage;
+  final Dio _refreshDio;
+  bool _isRefreshing = false;
+  String? _pendingToken;
 
-  _AuthInterceptor(this._storage);
+  static const _tokenKey = 'auth_token';
+  static const _refreshTokenKey = 'auth_refresh_token';
+
+  _AuthInterceptor(this._storage)
+      : _refreshDio = Dio(BaseOptions(
+          baseUrl: Env.apiBaseUrl,
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        ));
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
-    final token = await _storage.read(key: 'auth_token');
+    final token = await _storage.read(key: _tokenKey);
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
     }
@@ -66,16 +79,68 @@ class _AuthInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
-    // Only treat a 401 as an expired session when the request was actually
-    // authenticated. Public endpoints (login, register, forgot-password)
-    // legitimately return 401 for bad credentials and must not wipe a valid
-    // stored token.
     final sentAuthHeader =
         err.requestOptions.headers['Authorization']?.toString() ?? '';
-    if (err.response?.statusCode == 401 && sentAuthHeader.startsWith('Bearer ')) {
-      await _storage.delete(key: 'auth_token');
-      await _storage.delete(key: 'auth_refresh_token');
+    final isAuthenticatedRequest = sentAuthHeader.startsWith('Bearer ');
+    final is401 = err.response?.statusCode == 401;
+
+    if (is401 && isAuthenticatedRequest) {
+      final refreshed = await _tryRefresh();
+      if (refreshed && err.requestOptions.path != '/auth/refresh') {
+        final newToken = await _storage.read(key: _tokenKey);
+        if (newToken != null) {
+          err.requestOptions.headers['Authorization'] = 'Bearer $newToken';
+          try {
+            final clone = await _refreshDio.fetch(
+              err.requestOptions.copyWith(headers: {
+                ...err.requestOptions.headers,
+                'Authorization': 'Bearer $newToken',
+              }),
+            );
+            return handler.resolve(clone);
+          } catch (_) {}
+        }
+      }
     }
+
+    if (is401 && isAuthenticatedRequest && !err.requestOptions.path.startsWith('/auth')) {
+      await _storage.delete(key: _tokenKey);
+      await _storage.delete(key: _refreshTokenKey);
+    }
+
     super.onError(err, handler);
+  }
+
+  Future<bool> _tryRefresh() async {
+    if (_isRefreshing) {
+      // Wait for the in-flight refresh to complete and reuse its token.
+      for (var i = 0; i < 50 && _pendingToken == null; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
+      return _pendingToken != null;
+    }
+
+    final refreshToken = await _storage.read(key: _refreshTokenKey);
+    if (refreshToken == null || refreshToken.isEmpty) return false;
+
+    _isRefreshing = true;
+    try {
+      final response = await _refreshDio.post(
+        '/auth/refresh',
+        data: {'refreshToken': refreshToken},
+      );
+      final data = response.data as Map<String, dynamic>;
+      final newToken = data['token']?.toString();
+      if (newToken != null && newToken.isNotEmpty) {
+        await _storage.write(key: _tokenKey, value: newToken);
+        _pendingToken = newToken;
+        return true;
+      }
+      return false;
+    } catch (_) {
+      return false;
+    } finally {
+      _isRefreshing = false;
+    }
   }
 }

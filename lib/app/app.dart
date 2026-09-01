@@ -62,7 +62,7 @@ class _AppState extends State<App> {
           create: (_) => getIt<MaintenanceProvider>(),
         ),
         ChangeNotifierProvider(
-          create: (_) => getIt<SyncProvider>()..loadPending(),
+          create: (_) => getIt<SyncProvider>()..loadPending()..loadConflicts(),
         ),
         ChangeNotifierProvider(
           create: (_) => getIt<RecordProvider>(),
