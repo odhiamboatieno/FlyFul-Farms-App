@@ -26,6 +26,10 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Flyful Farms uses the camera to attach photos to your farm records.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Flyful Farms uses your photo library to attach photos to your farm records.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Required by image_picker to launch the camera -->
+    <uses-permission android:name="android.permission.CAMERA" />
     <application
         android:label="Flyful Farms"
         android:name="${applicationName}"
