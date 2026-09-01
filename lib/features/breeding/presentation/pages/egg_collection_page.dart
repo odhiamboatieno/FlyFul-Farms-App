@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/core/database/app_database.dart';
@@ -148,23 +149,32 @@ class _EggCollectionPageState extends State<EggCollectionPage> {
   }
 
   Widget _buildDateEntry() {
-    return Row(children: [
-      Container(width: 32, height: 32, decoration: BoxDecoration(color: AppColors.pale, borderRadius: BorderRadius.circular(6)),
-        child: const Icon(Icons.calendar_today, color: AppColors.green, size: 16)),
-      const SizedBox(width: 10),
-      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('SAVED DATE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 0.04)),
-        Text('Today', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, height: 1.2, color: AppColors.ink)),
-      ])),
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 6),
-        child: Row(children: [
-          const Icon(Icons.lock, color: AppColors.green, size: 14),
-          const SizedBox(width: 4),
-          Text('Today only', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.green)),
-        ]),
-      ),
-    ]);
+    final eggProvider = context.read<EggCollectionProvider>();
+    final date = eggProvider.draftDate ?? DateTime.now();
+    final fmt = DateFormat('MMM d, yyyy');
+    return GestureDetector(
+      onTap: () async {
+        final picked = await showDatePicker(
+          context: context,
+          initialDate: date,
+          firstDate: DateTime(2020),
+          lastDate: DateTime.now(),
+        );
+        if (picked != null) {
+          eggProvider.setDate(picked);
+        }
+      },
+      child: Row(children: [
+        Container(width: 32, height: 32, decoration: BoxDecoration(color: AppColors.pale, borderRadius: BorderRadius.circular(6)),
+          child: const Icon(Icons.calendar_today, color: AppColors.green, size: 16)),
+        const SizedBox(width: 10),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('DATE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textSecondary, letterSpacing: 0.04)),
+          Text(fmt.format(date), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, height: 1.2, color: AppColors.ink)),
+        ])),
+        const Icon(Icons.edit, color: AppColors.green, size: 16),
+      ]),
+    );
   }
 
   Widget _buildActionTitle(String title, String help) {

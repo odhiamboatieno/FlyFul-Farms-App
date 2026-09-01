@@ -13,11 +13,13 @@ class HarvestPupaPage extends StatefulWidget {
 
 class _HarvestPupaPageState extends State<HarvestPupaPage> {
   final _controller = TextEditingController();
+  final _notesController = TextEditingController();
   bool _saving = false;
 
   @override
   void dispose() {
     _controller.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -26,7 +28,9 @@ class _HarvestPupaPageState extends State<HarvestPupaPage> {
     final pupa = double.tryParse(_controller.text.trim()) ?? 0;
     context.read<HarvestProvider>().setPupaKg(pupa);
     setState(() => _saving = true);
-    final ok = await context.read<HarvestProvider>().saveHarvest();
+    final ok = await context.read<HarvestProvider>().saveHarvest(
+          notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+        );
     if (!mounted) return;
     setState(() => _saving = false);
     if (ok) {
@@ -60,6 +64,15 @@ class _HarvestPupaPageState extends State<HarvestPupaPage> {
                 contentPadding: EdgeInsets.zero,
               ),
               style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w700, color: AppColors.ink),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _notesController,
+              decoration: const InputDecoration(
+                labelText: 'Notes (optional)',
+                hintText: 'Add a note about this harvest',
+              ),
+              maxLines: 2,
             ),
             const SizedBox(height: 24),
             ElevatedButton(

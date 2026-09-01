@@ -13,12 +13,23 @@ class EggQualityPage extends StatefulWidget {
 }
 
 class _EggQualityPageState extends State<EggQualityPage> {
+  final _notesController = TextEditingController();
   bool _saving = false;
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
+  }
 
   Future<void> _save() async {
     if (_saving) return;
     setState(() => _saving = true);
-    final ok = await context.read<EggCollectionProvider>().saveEggCollection();
+    final provider = context.read<EggCollectionProvider>();
+    final ok = await provider.saveEggCollection(
+      date: provider.draftDate,
+      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+    );
     if (!mounted) return;
     setState(() => _saving = false);
     if (ok) {
@@ -59,6 +70,15 @@ class _EggQualityPageState extends State<EggQualityPage> {
                     isSelected: egg.draftQuality == 'poor',
                     onTap: () => context.read<EggCollectionProvider>().setQuality('poor')),
               ],
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _notesController,
+              decoration: const InputDecoration(
+                labelText: 'Notes (optional)',
+                hintText: 'Add a note about this collection',
+              ),
+              maxLines: 2,
             ),
             const SizedBox(height: 24),
             ElevatedButton(

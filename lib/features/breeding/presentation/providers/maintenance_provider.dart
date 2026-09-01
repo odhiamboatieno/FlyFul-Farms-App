@@ -53,13 +53,14 @@ class MaintenanceProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> saveMaintenance({String? notes}) async {
+  Future<bool> saveMaintenance({String? notes, DateTime? date}) async {
     final cageId = _draftCageId;
     if (cageId == null || cageId.isEmpty) {
       return false;
     }
 
     final now = DateTime.now();
+    final maintenanceDate = date ?? now;
     final remoteId = _uuid.v4();
     _saving = true;
     notifyListeners();
@@ -67,7 +68,7 @@ class MaintenanceProvider extends ChangeNotifier {
     final companion = CageMaintenancesCompanion.insert(
       remoteId: drift.Value(remoteId),
       cageId: cageId,
-      maintenanceDate: now,
+      maintenanceDate: maintenanceDate,
       waterChanged: drift.Value(_waterChanged),
       attractantReplaced: drift.Value(_attractantReplaced),
       cleaningDone: drift.Value(_cleaningDone),
@@ -86,7 +87,7 @@ class MaintenanceProvider extends ChangeNotifier {
           entityId: drift.Value(remoteId),
           operation: drift.Value('create'),
           payload: drift.Value(
-            jsonEncode(_maintenanceToJson(companion, now)),
+            jsonEncode(_maintenanceToJson(companion, maintenanceDate)),
           ),
         ),
       );

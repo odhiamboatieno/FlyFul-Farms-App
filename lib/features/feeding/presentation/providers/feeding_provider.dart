@@ -14,6 +14,7 @@ class FeedingProvider extends ChangeNotifier {
   String? _draftBatchId;
   String _draftWasteType = '';
   double _draftQuantityKg = 0;
+  DateTime? _draftDate;
   bool _saving = false;
 
   FeedingProvider(this._downloadDao, this._syncDao);
@@ -21,6 +22,7 @@ class FeedingProvider extends ChangeNotifier {
   String? get draftBatchId => _draftBatchId;
   String get draftWasteType => _draftWasteType;
   double get draftQuantityKg => _draftQuantityKg;
+  DateTime? get draftDate => _draftDate;
   bool get saving => _saving;
 
   void setBatchId(String batchId) {
@@ -38,20 +40,27 @@ class FeedingProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setDate(DateTime date) {
+    _draftDate = date;
+    notifyListeners();
+  }
+
   void reset() {
     _draftBatchId = null;
     _draftWasteType = '';
     _draftQuantityKg = 0;
+    _draftDate = null;
     notifyListeners();
   }
 
-  Future<bool> saveFeeding({String? notes, String? photoUrl}) async {
+  Future<bool> saveFeeding({String? notes, String? photoUrl, DateTime? date}) async {
     final batchId = _draftBatchId;
     if (batchId == null || batchId.isEmpty || _draftWasteType.isEmpty || _draftQuantityKg <= 0) {
       return false;
     }
 
     final now = DateTime.now();
+    final fedAt = date ?? now;
     final remoteId = _uuid.v4();
     _saving = true;
     notifyListeners();
@@ -61,7 +70,7 @@ class FeedingProvider extends ChangeNotifier {
       batchId: batchId,
       wasteQuantityKg: _draftQuantityKg,
       wasteType: _draftWasteType,
-      fedAt: now,
+      fedAt: fedAt,
       notes: drift.Value(notes),
       photoUrl: drift.Value(photoUrl),
       createdAt: drift.Value(now),
@@ -78,7 +87,7 @@ class FeedingProvider extends ChangeNotifier {
           entityId: drift.Value(remoteId),
           operation: drift.Value('create'),
           payload: drift.Value(
-            jsonEncode(_feedingToJson(companion, now)),
+            jsonEncode(_feedingToJson(companion, fedAt)),
           ),
         ),
       );

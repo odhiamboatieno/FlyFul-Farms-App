@@ -14,6 +14,7 @@ class MaintenancePage extends StatefulWidget {
 }
 
 class _MaintenancePageState extends State<MaintenancePage> {
+  final _notesController = TextEditingController();
   bool _saving = false;
 
   @override
@@ -26,6 +27,12 @@ class _MaintenancePageState extends State<MaintenancePage> {
     });
   }
 
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
+  }
+
   Future<void> _save() async {
     if (_saving) return;
     setState(() => _saving = true);
@@ -33,7 +40,9 @@ class _MaintenancePageState extends State<MaintenancePage> {
     final cageProvider = context.read<CageProvider>();
     final wasWaterChanged = maintenance.waterChanged;
     final cageRemoteId = maintenance.draftCageId;
-    final ok = await maintenance.saveMaintenance();
+    final ok = await maintenance.saveMaintenance(
+      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+    );
     if (ok && wasWaterChanged) {
       final cage = cageProvider.cageByRemoteId(cageRemoteId);
       if (cage != null) {
@@ -75,6 +84,15 @@ class _MaintenancePageState extends State<MaintenancePage> {
             const SizedBox(height: 8),
             _buildToggle('Cleaning done', Icons.cleaning_services, maintenance.cleaningDone,
                 (v) => maintenance.setCleaningDone(v)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _notesController,
+              decoration: const InputDecoration(
+                labelText: 'Notes (optional)',
+                hintText: 'Add a note about this maintenance',
+              ),
+              maxLines: 2,
+            ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: hasCage ? _save : null,

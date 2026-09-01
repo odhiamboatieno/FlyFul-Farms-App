@@ -14,6 +14,7 @@ class EggCollectionProvider extends ChangeNotifier {
   String? _draftCageId;
   String _draftEggWeightGrams = '';
   String _draftQuality = 'best';
+  DateTime? _draftDate;
   bool _saving = false;
 
   EggCollectionProvider(this._downloadDao, this._syncDao);
@@ -21,10 +22,16 @@ class EggCollectionProvider extends ChangeNotifier {
   String? get draftCageId => _draftCageId;
   String get draftEggWeightGrams => _draftEggWeightGrams;
   String get draftQuality => _draftQuality;
+  DateTime? get draftDate => _draftDate;
   bool get saving => _saving;
 
   void setCageId(String cageId) {
     _draftCageId = cageId;
+    notifyListeners();
+  }
+
+  void setDate(DateTime date) {
+    _draftDate = date;
     notifyListeners();
   }
 
@@ -42,10 +49,11 @@ class EggCollectionProvider extends ChangeNotifier {
     _draftCageId = null;
     _draftEggWeightGrams = '';
     _draftQuality = 'best';
+    _draftDate = null;
     notifyListeners();
   }
 
-  Future<bool> saveEggCollection({String? notes, String? photoUrl}) async {
+  Future<bool> saveEggCollection({String? notes, String? photoUrl, DateTime? date}) async {
     final cageId = _draftCageId;
     final weight = double.tryParse(_draftEggWeightGrams);
     if (cageId == null || cageId.isEmpty || weight == null || weight <= 0) {
@@ -53,6 +61,7 @@ class EggCollectionProvider extends ChangeNotifier {
     }
 
     final now = DateTime.now();
+    final collectedAt = date ?? now;
     final remoteId = _uuid.v4();
     _saving = true;
     notifyListeners();
@@ -62,7 +71,7 @@ class EggCollectionProvider extends ChangeNotifier {
       cageId: cageId,
       eggWeightGrams: drift.Value(_draftEggWeightGrams),
       quality: drift.Value(_draftQuality),
-      collectedAt: now,
+      collectedAt: collectedAt,
       notes: drift.Value(notes),
       photoUrl: drift.Value(photoUrl),
       createdAt: drift.Value(now),
@@ -79,7 +88,7 @@ class EggCollectionProvider extends ChangeNotifier {
           entityId: drift.Value(remoteId),
           operation: drift.Value('create'),
           payload: drift.Value(
-            jsonEncode(_eggToJson(companion, now)),
+            jsonEncode(_eggToJson(companion, collectedAt)),
           ),
         ),
       );

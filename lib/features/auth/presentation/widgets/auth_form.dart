@@ -180,10 +180,11 @@ class _AuthFormState extends State<AuthForm> {
             onPressed: widget.isLogin ? () => widget.onSwitchMode() : widget.onSwitchMode,
             child: Text(widget.isLogin ? "Don't have an account? Register" : 'Already have an account? Login'),
           ),
-          TextButton(
-            onPressed: widget.onForgotPassword,
-            child: const Text('Forgot your password?'),
-          ),
+          if (widget.isLogin)
+            TextButton(
+              onPressed: widget.onForgotPassword,
+              child: const Text('Forgot your password?'),
+            ),
         ],
       ),
     );

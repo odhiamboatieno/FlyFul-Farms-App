@@ -17,8 +17,15 @@ class FeedPhotoPage extends StatefulWidget {
 
 class _FeedPhotoPageState extends State<FeedPhotoPage> {
   final ImagePicker _picker = ImagePicker();
+  final _notesController = TextEditingController();
   String? _photoPath;
   bool _saving = false;
+
+  @override
+  void dispose() {
+    _notesController.dispose();
+    super.dispose();
+  }
 
   Future<void> _takePhoto() async {
     try {
@@ -59,7 +66,12 @@ class _FeedPhotoPageState extends State<FeedPhotoPage> {
   Future<void> _save() async {
     if (_saving) return;
     setState(() => _saving = true);
-    final ok = await context.read<FeedingProvider>().saveFeeding(photoUrl: _photoPath);
+    final provider = context.read<FeedingProvider>();
+    final ok = await provider.saveFeeding(
+      photoUrl: _photoPath,
+      date: provider.draftDate,
+      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+    );
     if (!mounted) return;
     setState(() => _saving = false);
     if (ok) {
@@ -136,6 +148,15 @@ class _FeedPhotoPageState extends State<FeedPhotoPage> {
                 ),
               ),
             ],
+            const SizedBox(height: 16),
+            TextField(
+              controller: _notesController,
+              decoration: const InputDecoration(
+                labelText: 'Notes (optional)',
+                hintText: 'Add a note about this feeding',
+              ),
+              maxLines: 2,
+            ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: canSave ? _save : null,

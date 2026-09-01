@@ -53,13 +53,14 @@ class HarvestProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> saveHarvest({String? notes, String? photoUrl}) async {
+  Future<bool> saveHarvest({String? notes, String? photoUrl, DateTime? date}) async {
     final batchId = _draftBatchId;
     if (batchId == null || batchId.isEmpty || _draftWetLarvaeKg <= 0) {
       return false;
     }
 
     final now = DateTime.now();
+    final harvestedAt = date ?? now;
     final remoteId = _uuid.v4();
     _saving = true;
     notifyListeners();
@@ -70,7 +71,7 @@ class HarvestProvider extends ChangeNotifier {
       wetLarvaeKg: _draftWetLarvaeKg,
       frassKg: drift.Value(_draftFrassKg),
       pupaKg: drift.Value(_draftPupaKg),
-      harvestedAt: now,
+      harvestedAt: harvestedAt,
       notes: drift.Value(notes),
       photoUrl: drift.Value(photoUrl),
       createdAt: drift.Value(now),
@@ -87,7 +88,7 @@ class HarvestProvider extends ChangeNotifier {
           entityId: drift.Value(remoteId),
           operation: drift.Value('create'),
           payload: drift.Value(
-            jsonEncode(_harvestToJson(companion, now)),
+            jsonEncode(_harvestToJson(companion, harvestedAt)),
           ),
         ),
       );
