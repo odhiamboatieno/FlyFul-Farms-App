@@ -42,7 +42,7 @@ val hasReleaseConfig = releaseKeystoreFile != null && releaseKeystoreFile!!.exis
 
 android {
     namespace = "com.flyfulfarms.app"
-    compileSdk = 35
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
