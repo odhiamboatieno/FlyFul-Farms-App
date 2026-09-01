@@ -20,7 +20,13 @@ class SettingsPage extends StatelessWidget {
             children: [
               _buildPageHeader(context, 'Settings', 'Make the app easy for you'),
               const SizedBox(height: 16),
-              _buildNavItem(Icons.language, 'English', 'Language follows your phone'),
+              _buildNavItem(
+                Icons.language,
+                'English',
+                'Language follows your phone',
+                trailing: const Text('EN',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.muted)),
+              ),
               _buildNavItem(Icons.sync, 'Sync to server', 'Upload your work when online', onTap: () => context.push('/sync')),
               const SizedBox(height: 24),
               ElevatedButton(

@@ -18,69 +18,64 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _buildLogo(),
-                const SizedBox(height: 32),
-                AuthForm(
-                  isLogin: true,
-                  onSubmit: (phone, email, password, pin, name) {
-                    return context.read<AuthProvider>().login(
-                      phone: phone,
-                      email: email.isEmpty ? null : email,
-                      password: password.isEmpty ? null : password,
-                      pin: pin.isEmpty ? null : pin,
-                    );
-                  },
-                  onSwitchMode: () => context.go('/register'),
-                  onForgotPassword: () {
-                    context.go('/forgot-password');
-                  },
-                ),
-              ],
-            ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(17),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildHeader(),
+              const SizedBox(height: 24),
+              _buildBrand(),
+              const SizedBox(height: 28),
+              AuthForm(
+                isLogin: true,
+                onSubmit: (phone, email, password, pin, name) {
+                  return context.read<AuthProvider>().login(
+                        phone: phone,
+                        email: email.isEmpty ? null : email,
+                        password: password.isEmpty ? null : password,
+                        pin: pin.isEmpty ? null : pin,
+                      );
+                },
+                onSwitchMode: () => context.go('/register'),
+                onForgotPassword: () {
+                  context.go('/forgot-password');
+                },
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildLogo() {
-    return Column(
-      children: [
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: const Icon(
-            Icons.eco,
-            size: 48,
-            color: Colors.white,
-          ),
+  Widget _buildHeader() {
+    return Row(children: [
+      GestureDetector(onTap: () => context.go('/'), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
+      const SizedBox(width: 8),
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        OutfitText(text: 'Welcome back', fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink),
+        Text('Log in to your farm', style: TextStyle(fontSize: 15, height: 1.45, color: AppColors.textSecondary)),
+      ]),
+    ]);
+  }
+
+  Widget _buildBrand() {
+    return Column(children: [
+      Container(
+        width: 76,
+        height: 76,
+        decoration: BoxDecoration(
+          color: AppColors.green,
+          borderRadius: BorderRadius.circular(16),
         ),
-        const SizedBox(height: 12),
-        Text(
-          'Flyful Farms',
-          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: AppColors.green,
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Insect Farming Management',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
-              ),
-        ),
-      ],
-    );
+        child: const Icon(Icons.eco, size: 44, color: Colors.white),
+      ),
+      const SizedBox(height: 12),
+      OutfitText(text: 'Flyful Farms', fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.green, letterSpacing: -0.02),
+      const SizedBox(height: 4),
+      Text('Insect Farming Management',
+          style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+    ]);
   }
 }

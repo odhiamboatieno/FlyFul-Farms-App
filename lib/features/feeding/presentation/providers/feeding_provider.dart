@@ -100,6 +100,7 @@ class FeedingProvider extends ChangeNotifier {
       'wasteQuantityKg': f.wasteQuantityKg.value,
       'occurredAt': occurredAt.toIso8601String(),
       'notes': f.notes.value,
+      'photoUrl': f.photoUrl.value,
     };
   }
 }

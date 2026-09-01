@@ -22,13 +22,7 @@ class ComparePage extends StatelessWidget {
             const SizedBox(height: 16),
             _buildGrowthHero(compare),
             const SizedBox(height: 14),
-            Row(children: [
-              Expanded(child: _buildPeriodButton('This week', isSelected: true)),
-              const SizedBox(width: 7),
-              Expanded(child: _buildPeriodButton('Last week')),
-            ]),
-            const SizedBox(height: 10),
-            const Text('Tall green bar means more than last week.', style: TextStyle(fontSize: 11, color: Color(0xFF9AA69E))),
+            const Text('Green bar = this week, grey label = last week.', style: TextStyle(fontSize: 11, color: Color(0xFF9AA69E))),
             const SizedBox(height: 14),
             _buildCompareCard(Icons.eco, 'Waste used', 'Food given to larvae', compare.wasteUsed),
             _buildCompareCard(Icons.eco, 'Larvae harvested', 'Larvae ready for sale', compare.larvaeHarvested),
@@ -81,19 +75,6 @@ class ComparePage extends StatelessWidget {
           ),
         ])),
       ]),
-    );
-  }
-
-  Widget _buildPeriodButton(String label, {bool isSelected = false}) {
-    return ElevatedButton(
-      onPressed: null,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected ? AppColors.green : Colors.transparent,
-        foregroundColor: isSelected ? Colors.white : AppColors.muted,
-        padding: const EdgeInsets.symmetric(vertical: 11),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
-      ),
-      child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
     );
   }
 

@@ -1,7 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart';
 import 'package:flyful_farms/app/theme.dart';
 import 'package:flyful_farms/features/feeding/presentation/providers/feeding_provider.dart';
+import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 class FeedPhotoPage extends StatefulWidget {
@@ -12,12 +16,50 @@ class FeedPhotoPage extends StatefulWidget {
 }
 
 class _FeedPhotoPageState extends State<FeedPhotoPage> {
+  final ImagePicker _picker = ImagePicker();
+  String? _photoPath;
   bool _saving = false;
+
+  Future<void> _takePhoto() async {
+    try {
+      final file = await _picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1600,
+        imageQuality: 80,
+      );
+      if (file != null) {
+        setState(() => _photoPath = file.path);
+      }
+    } on PlatformException {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open the camera. Try the gallery instead.')),
+      );
+    }
+  }
+
+  Future<void> _pickFromGallery() async {
+    try {
+      final file = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1600,
+        imageQuality: 80,
+      );
+      if (file != null) {
+        setState(() => _photoPath = file.path);
+      }
+    } on PlatformException {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open the gallery.')),
+      );
+    }
+  }
 
   Future<void> _save() async {
     if (_saving) return;
     setState(() => _saving = true);
-    final ok = await context.read<FeedingProvider>().saveFeeding();
+    final ok = await context.read<FeedingProvider>().saveFeeding(photoUrl: _photoPath);
     if (!mounted) return;
     setState(() => _saving = false);
     if (ok) {
@@ -45,22 +87,56 @@ class _FeedPhotoPageState extends State<FeedPhotoPage> {
             const SizedBox(height: 16),
             _buildActionTitle('Take a photo?', 'A photo helps you remember what you fed the larvae.'),
             const SizedBox(height: 16),
-            Container(
-              height: 138,
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(5),
-                border: Border.all(color: AppColors.line, style: BorderStyle.none),
-              ),
-              child: Center(
-                child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                  const Icon(Icons.camera_alt, color: AppColors.green, size: 32),
-                  const SizedBox(height: 8),
-                  OutfitText(text: 'Take food photo', fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.green),
-                ]),
+            GestureDetector(
+              onTap: _photoPath == null ? _takePhoto : null,
+              child: Container(
+                height: 138,
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: _photoPath == null
+                    ? Center(
+                        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                          const Icon(Icons.camera_alt, color: AppColors.green, size: 32),
+                          const SizedBox(height: 8),
+                          OutfitText(text: 'Take food photo', fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.green),
+                        ]),
+                      )
+                    : ClipRRect(
+                        borderRadius: BorderRadius.circular(5),
+                        child: Image.file(File(_photoPath!), fit: BoxFit.cover, width: double.infinity),
+                      ),
               ),
             ),
-            const SizedBox(height: 24),
+            if (_photoPath != null) ...[
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton.icon(
+                    onPressed: _takePhoto,
+                    icon: const Icon(Icons.camera_alt, size: 16),
+                    label: const Text('Retake'),
+                  ),
+                  TextButton.icon(
+                    onPressed: _pickFromGallery,
+                    icon: const Icon(Icons.photo_library, size: 16),
+                    label: const Text('Gallery'),
+                  ),
+                ],
+              ),
+            ] else ...[
+              const SizedBox(height: 8),
+              Center(
+                child: TextButton.icon(
+                  onPressed: _pickFromGallery,
+                  icon: const Icon(Icons.photo_library, size: 16),
+                  label: const Text('Choose from gallery'),
+                ),
+              ),
+            ],
+            const SizedBox(height: 16),
             ElevatedButton(
               onPressed: canSave ? _save : null,
               child: _saving

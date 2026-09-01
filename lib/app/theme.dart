@@ -30,7 +30,7 @@ class AppTheme {
         brightness: Brightness.light,
         primaryColor: AppColors.green,
         scaffoldBackgroundColor: AppColors.background,
-        fontFamily: 'Outfit',
+        fontFamily: 'Poppins',
         appBarTheme: const AppBarTheme(
           backgroundColor: AppColors.background,
           foregroundColor: AppColors.textPrimary,
@@ -79,20 +79,20 @@ class AppTheme {
         ),
         textTheme: const TextTheme(
           headlineMedium: TextStyle(
-            fontFamily: 'Outfit',
+            fontFamily: 'Poppins',
             fontSize: 26,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.015,
             color: AppColors.ink,
           ),
           headlineSmall: TextStyle(
-            fontFamily: 'Outfit',
+            fontFamily: 'Poppins',
             fontSize: 19,
             fontWeight: FontWeight.w800,
             color: AppColors.ink,
           ),
           titleLarge: TextStyle(
-            fontFamily: 'Outfit',
+            fontFamily: 'Poppins',
             fontSize: 20,
             fontWeight: FontWeight.w800,
             color: AppColors.ink,
@@ -147,7 +147,7 @@ class OutfitText extends StatelessWidget {
     return Text(
       text,
       style: TextStyle(
-        fontFamily: 'Outfit',
+        fontFamily: 'Poppins',
         fontSize: fontSize,
         fontWeight: fontWeight,
         color: color,

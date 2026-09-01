@@ -71,23 +71,6 @@ class _TodayPageState extends State<TodayPage> {
         ),
         Row(
           children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(50),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Icon(Icons.notifications, color: AppColors.ink, size: 21),
-            ),
-            const SizedBox(width: 12),
             GestureDetector(
               onTap: () => context.push('/profile'),
               child: Container(

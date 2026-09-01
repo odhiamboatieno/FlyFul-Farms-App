@@ -18,64 +18,67 @@ class _RegisterPageState extends State<RegisterPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: AppColors.green,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Icon(
-                    Icons.eco,
-                    size: 48,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 32),
-                Text(
-                  'Create Your Account',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Join Flyful Farms today',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                ),
-                const SizedBox(height: 24),
-                AuthForm(
-                  isLogin: false,
-                  onSubmit: (phone, email, password, pin, name) async {
-                    final provider = context.read<AuthProvider>();
-                    final ok = await provider.register(
-                      name: name,
-                      phone: phone,
-                      email: email.isEmpty ? null : email,
-                      password: password.isEmpty ? null : password,
-                      pin: pin.isEmpty ? null : pin,
-                    );
-                    return ok;
-                  },
-                  onSwitchMode: () => context.go('/login'),
-                  onForgotPassword: () {
-                    context.go('/forgot-password');
-                  },
-                ),
-              ],
-            ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(17),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildHeader(),
+              const SizedBox(height: 24),
+              _buildBrand(),
+              const SizedBox(height: 28),
+              AuthForm(
+                isLogin: false,
+                onSubmit: (phone, email, password, pin, name) async {
+                  final provider = context.read<AuthProvider>();
+                  final ok = await provider.register(
+                    name: name,
+                    phone: phone,
+                    email: email.isEmpty ? null : email,
+                    password: password.isEmpty ? null : password,
+                    pin: pin.isEmpty ? null : pin,
+                  );
+                  return ok;
+                },
+                onSwitchMode: () => context.go('/login'),
+                onForgotPassword: () {
+                  context.go('/forgot-password');
+                },
+              ),
+            ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildHeader() {
+    return Row(children: [
+      GestureDetector(onTap: () => context.go('/'), child: const Icon(Icons.arrow_back_ios, color: AppColors.ink, size: 20)),
+      const SizedBox(width: 8),
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        OutfitText(text: 'Create account', fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.ink),
+        Text('Join Flyful Farms today', style: TextStyle(fontSize: 15, height: 1.45, color: AppColors.textSecondary)),
+      ]),
+    ]);
+  }
+
+  Widget _buildBrand() {
+    return Column(children: [
+      Container(
+        width: 76,
+        height: 76,
+        decoration: BoxDecoration(
+          color: AppColors.green,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: const Icon(Icons.eco, size: 44, color: Colors.white),
+      ),
+      const SizedBox(height: 12),
+      OutfitText(text: 'Flyful Farms', fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.green, letterSpacing: -0.02),
+      const SizedBox(height: 4),
+      Text('Start managing your farm',
+          style: TextStyle(fontSize: 14, color: AppColors.textSecondary)),
+    ]);
   }
 }
