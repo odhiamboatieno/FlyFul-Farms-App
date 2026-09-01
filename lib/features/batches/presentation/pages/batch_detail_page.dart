@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flyful_farms/app/theme.dart';
@@ -71,6 +73,7 @@ class _BatchDetailPageState extends State<BatchDetailPage> {
                         Icons.food_bank,
                         _wasteLabel(f.wasteType.isEmpty ? 'mixed' : f.wasteType),
                         '${f.wasteQuantityKg.toStringAsFixed(1)} KG · ${DateFormat('MMM d').format(f.fedAt)}',
+                        photoUrl: f.photoUrl,
                         onDelete: () => _confirmDeleteRecord(
                           context,
                           description: 'Delete this feeding record?',
@@ -117,7 +120,7 @@ class _BatchDetailPageState extends State<BatchDetailPage> {
     );
   }
 
-  Widget _buildRecord(IconData icon, String title, String subtitle, {VoidCallback? onDelete}) {
+  Widget _buildRecord(IconData icon, String title, String subtitle, {VoidCallback? onDelete, String? photoUrl}) {
     return Container(
       padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.circular(5),
@@ -130,12 +133,40 @@ class _BatchDetailPageState extends State<BatchDetailPage> {
           Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.ink)),
           Text(subtitle, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
         ])),
+        if (photoUrl != null && photoUrl.isNotEmpty && File(photoUrl).existsSync())
+          GestureDetector(
+            onTap: () => _showPhoto(context, photoUrl),
+            child: Container(
+              width: 44,
+              height: 44,
+              margin: const EdgeInsets.only(left: 8),
+              decoration: BoxDecoration(
+                color: AppColors.pale,
+                borderRadius: BorderRadius.circular(5),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Image.file(File(photoUrl), fit: BoxFit.cover),
+            ),
+          ),
         if (onDelete != null)
           IconButton(
             onPressed: onDelete,
             icon: const Icon(Icons.delete_outline, color: AppColors.red, size: 19),
           ),
       ]),
+    );
+  }
+
+  void _showPhoto(BuildContext context, String path) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.black,
+        child: GestureDetector(
+          onTap: () => Navigator.pop(ctx),
+          child: Image.file(File(path), fit: BoxFit.contain),
+        ),
+      ),
     );
   }
 
